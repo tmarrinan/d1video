@@ -23,7 +23,7 @@ DXT1-based Converter and Player for Ultra High Resolution Videos (4K - 16K)
 
 #### Run ####
 
-D1V Converter (convert a stack of frames to d1v video)
+##### D1V Converter (convert a stack of frames to d1v video) #####
 
 * Open Terminal
     * `cd <d1video_directory>`
@@ -33,7 +33,7 @@ D1V Converter (convert a stack of frames to d1v video)
     * `-o, --output <FILE>` file to save output D1V video [Default: output.d1v]
     * `-r, --framerate <INTEGER>` frames per second to play back video [Default: 24]
 
-D1V Player (play a d1v video)
+##### D1V Player (play a d1v video) #####
 
 * Open Terminal
     * `cd <d1video_directory>`
@@ -46,4 +46,3 @@ D1V Player (play a d1v video)
     * `ctrl + f`: full screen (Windows / Linux)
     * `cmd + f`: full screen (Max OS X)
     * `esc`: exit full screen
-    
