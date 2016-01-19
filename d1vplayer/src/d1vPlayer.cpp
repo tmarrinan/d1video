@@ -140,10 +140,10 @@ void d1vPlayer::updateTextures() {
 }
 
 void d1vPlayer::initShaders(std::string name) {
-	string vertSource = readFile(exePath + "../dxt1player/shaders/" + name + ".vert");
+	string vertSource = readFile(exePath + "../d1vplayer/shaders/" + name + ".vert");
 	GLint vertexShader = compileShader(vertSource, GL_VERTEX_SHADER);
 
-	string fragSource = readFile(exePath + "../dxt1player/shaders/" + name + ".frag");
+	string fragSource = readFile(exePath + "../d1vplayer/shaders/" + name + ".frag");
 	GLint fragmentShader = compileShader(fragSource, GL_FRAGMENT_SHADER);
 	
 	createShaderProgram(name, vertexShader, fragmentShader);
