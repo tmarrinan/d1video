@@ -33,8 +33,8 @@ LIBS_P= $(SDL_LIB) $(OPENGL_LIB)
 CXX= g++
 COMPILER_FLAGS= -g
 
-EXEC_C= bin/d1vconverter
-EXEC_P= bin/d1vplayer
+EXEC_C= $(BINDIR)/d1vconverter
+EXEC_P= $(BINDIR)/d1vplayer
 
 
 all: d1vconverter d1vplayer
