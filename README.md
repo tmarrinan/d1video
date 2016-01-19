@@ -3,7 +3,7 @@ D1Video
 
 DXT1-based Converter and Player for Ultra High Resolution Videos (4K - 16K)
 
-*max performance test: 15360x4320 at 24 fps*
+* *max performance test: 15360x4320 at 24 fps*
 
 
 ## Installation##
