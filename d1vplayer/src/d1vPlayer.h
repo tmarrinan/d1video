@@ -79,7 +79,7 @@ private:
 	GLuint vertexTextureBuffer;
 	GLuint vertexIndexBuffer;
 
-	GLuint imgTexture;
+	GLuint vidTexture;
 
 	GLuint shaderProgram;
 	GLint vertexPositionAttribute;
@@ -88,8 +88,8 @@ private:
 	GLint dxt1Uniform;
 
 	std::string exePath;
-	std::string imgFile;
-	double imgAspect;
+	std::string vidFile;
+	double vidAspect;
 
 	FILE *d1vF;
 	bool eof;

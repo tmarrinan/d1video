@@ -11,7 +11,7 @@ d1vPlayer::d1vPlayer(SDL_Window *win, string exe) {
 void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h) {
 	SDL_GL_SetSwapInterval(1);
 
-	imgFile = inFile;
+	vidFile = inFile;
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -26,15 +26,15 @@ void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h) {
 void d1vPlayer::setViewport(unsigned int winW, unsigned int winH) {
 	int viewX, viewY, viewW, viewH;
 	double winAspect = (double)winW / (double)winH;
-	if (imgAspect < winAspect) {
-		viewW = (int)((double)winH * imgAspect);
+	if (vidAspect < winAspect) {
+		viewW = (int)((double)winH * vidAspect);
 		viewH = winH;
 		viewX = (winW - viewW) / 2;
 		viewY = 0;
 	}
 	else {
 		viewW = winW;
-		viewH = (int)((double)winW / imgAspect);
+		viewH = (int)((double)winW / vidAspect);
 		viewX = 0;
 		viewY = (winH - viewH) / 2;
 	}
@@ -45,7 +45,7 @@ void d1vPlayer::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, imgTexture);
+	glBindTexture(GL_TEXTURE_2D, vidTexture);
 	glUniform1i(dxt1Uniform, 0);
 
 	glBindVertexArray(vertexArrayObject);
@@ -108,14 +108,14 @@ void d1vPlayer::initBuffers() {
 void d1vPlayer::initTextures() {
 	GLenum err;
 
-	glGenTextures(1, &imgTexture);
+	glGenTextures(1, &vidTexture);
 
-	loadDXT1(imgFile);
+	loadDXT1(vidFile);
 
-	imgAspect = (double)frameW / (double)frameH;
+	vidAspect = (double)frameW / (double)frameH;
 
 	glPixelStorei(GL_PACK_ALIGNMENT, 4);
-	glBindTexture(GL_TEXTURE_2D, imgTexture);
+	glBindTexture(GL_TEXTURE_2D, vidTexture);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -134,7 +134,7 @@ void d1vPlayer::updateTextures() {
 		return;
 	}
 
-	glBindTexture(GL_TEXTURE_2D, imgTexture);
+	glBindTexture(GL_TEXTURE_2D, vidTexture);
 	glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, frameW, frameH, 0, frameSize, d1vPixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
