@@ -23,28 +23,28 @@
 #endif
 
 #ifndef __APPLE__
-extern PFNGLATTACHSHADERPROC            glAttachShader;
-extern PFNGLBINDATTRIBLOCATIONPROC      glBindAttribLocation;
-extern PFNGLBINDBUFFERPROC              glBindBuffer;
-extern PFNGLBINDFRAGDATALOCATIONPROC    glBindFragDataLocation;
-extern PFNGLBINDVERTEXARRAYPROC         glBindVertexArray;
-extern PFNGLBUFFERDATAPROC              glBufferData;
-extern PFNGLCOMPILESHADERPROC           glCompileShader;
-extern PFNGLCREATEPROGRAMPROC           glCreateProgram;
-extern PFNGLCREATESHADERPROC            glCreateShader;
-extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-extern PFNGLGENBUFFERSPROC              glGenBuffers;
-extern PFNGLGENVERTEXARRAYSPROC         glGenVertexArrays;
-extern PFNGLGETATTRIBLOCATIONPROC       glGetAttribLocation;
-extern PFNGLGETPROGRAMIVPROC            glGetProgramiv;
-extern PFNGLGETSHADERINFOLOGPROC        glGetShaderInfoLog;
-extern PFNGLGETSHADERIVPROC             glGetShaderiv;
-extern PFNGLGETUNIFORMLOCATIONPROC      glGetUniformLocation;
-extern PFNGLLINKPROGRAMPROC             glLinkProgram;
-extern PFNGLSHADERSOURCEPROC            glShaderSource;
-extern PFNGLUNIFORM1IPROC               glUniform1i;
-extern PFNGLUSEPROGRAMPROC              glUseProgram;
-extern PFNGLVERTEXATTRIBPOINTERPROC     glVertexAttribPointer;
+	extern PFNGLATTACHSHADERPROC            glAttachShader;
+	extern PFNGLBINDATTRIBLOCATIONPROC      glBindAttribLocation;
+	extern PFNGLBINDBUFFERPROC              glBindBuffer;
+	extern PFNGLBINDFRAGDATALOCATIONPROC    glBindFragDataLocation;
+	extern PFNGLBINDVERTEXARRAYPROC         glBindVertexArray;
+	extern PFNGLBUFFERDATAPROC              glBufferData;
+	extern PFNGLCOMPILESHADERPROC           glCompileShader;
+	extern PFNGLCREATEPROGRAMPROC           glCreateProgram;
+	extern PFNGLCREATESHADERPROC            glCreateShader;
+	extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
+	extern PFNGLGENBUFFERSPROC              glGenBuffers;
+	extern PFNGLGENVERTEXARRAYSPROC         glGenVertexArrays;
+	extern PFNGLGETATTRIBLOCATIONPROC       glGetAttribLocation;
+	extern PFNGLGETPROGRAMIVPROC            glGetProgramiv;
+	extern PFNGLGETSHADERINFOLOGPROC        glGetShaderInfoLog;
+	extern PFNGLGETSHADERIVPROC             glGetShaderiv;
+	extern PFNGLGETUNIFORMLOCATIONPROC      glGetUniformLocation;
+	extern PFNGLLINKPROGRAMPROC             glLinkProgram;
+	extern PFNGLSHADERSOURCEPROC            glShaderSource;
+	extern PFNGLUNIFORM1IPROC               glUniform1i;
+	extern PFNGLUSEPROGRAMPROC              glUseProgram;
+	extern PFNGLVERTEXATTRIBPOINTERPROC     glVertexAttribPointer;
 #endif
 
 class d1vPlayer {
