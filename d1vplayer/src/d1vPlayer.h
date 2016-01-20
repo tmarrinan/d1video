@@ -64,9 +64,23 @@ private:
 
 	GLint dxt1Uniform;
 
+	GLuint guiVertexArrayObject;
+	GLuint guiVertexPositionBuffer;
+	GLuint guiVertexColorBuffer;
+	GLuint guiVertexIndexBuffer;
+
+	GLuint guiShaderProgram;
+	GLint guiVertexPositionAttribute;
+	GLint guiVertexColorAttribute;
+
+	double guiOpacity;
+
 	std::string exePath;
 	std::string vidFile;
 	double vidAspect;
+
+	unsigned int winW;
+	unsigned int winH;
 
 	FILE *d1vF;
 	bool eof;
@@ -80,16 +94,17 @@ private:
 public:
 	d1vPlayer(SDL_Window *win, std::string exe);
 	void initGL(std::string inFile, unsigned int w, unsigned int h);
-	void setViewport(unsigned int w, unsigned int h);
+	void setVideoViewport();
+	void setGuiViewport();
 	void render();
 	void resize(unsigned int w, unsigned int h);
 	bool hasMoreFrames();
 	void initBuffers();
 	void initTextures();
 	void updateTextures();
-	void initShaders(std::string name);
+	void initShaders(std::string name, GLuint *program);
 	GLint compileShader(std::string source, GLint type);
-	void createShaderProgram(std::string name, GLint vertexShader, GLint fragmentShader);
+	void createShaderProgram(std::string name, GLint vertexShader, GLint fragmentShader, GLuint *program);
 	std::string readFile(std::string filename);
 	void loadDXT1(std::string filename);
 	unsigned int getPlaybackFps();

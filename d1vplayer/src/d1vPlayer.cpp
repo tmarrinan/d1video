@@ -57,24 +57,29 @@ d1vPlayer::d1vPlayer(SDL_Window *win, string exe) {
 	mainwindow = win;
 	exePath = exe;
 	eof = false;
+	guiOpacity = 1.0;
 }
 
 void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h) {
 	SDL_GL_SetSwapInterval(1);
 
 	vidFile = inFile;
+	winW = w;
+	winH = h;
 
-	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
-	initShaders("texture");
+	initShaders("texture", &shaderProgram);
+	initShaders("color", &guiShaderProgram);
 	initBuffers();
 	initTextures();
-	setViewport(w, h);
 }
 
-void d1vPlayer::setViewport(unsigned int winW, unsigned int winH) {
+void d1vPlayer::setVideoViewport() {
 	int viewX, viewY, viewW, viewH;
 	double winAspect = (double)winW / (double)winH;
 	if (vidAspect < winAspect) {
@@ -92,8 +97,29 @@ void d1vPlayer::setViewport(unsigned int winW, unsigned int winH) {
 	glViewport(viewX, viewY, viewW, viewH);
 }
 
+void d1vPlayer::setGuiViewport() {
+	int viewX, viewY, viewW, viewH;
+	if (winW < winH) {
+		viewW = winW;
+		viewH = winW;
+		viewX = 0;
+		viewY = (winH - winW) / 2;
+	}
+	else {
+		viewW = winH;
+		viewH = winH;
+		viewX = (winW - winH) / 2;
+		viewY = 0;
+	}
+	glViewport(viewX, viewY, viewW, viewH);
+}
+
 void d1vPlayer::render() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// render video texture
+	glUseProgram(shaderProgram);
+	setVideoViewport();
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, vidTexture);
@@ -102,11 +128,21 @@ void d1vPlayer::render() {
 	glBindVertexArray(vertexArrayObject);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
+	// render video player gui
+	if (guiOpacity > 0.0) {
+		glUseProgram(guiShaderProgram);
+		setGuiViewport();
+
+		glBindVertexArray(guiVertexArrayObject);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+	}
+
 	SDL_GL_SwapWindow(mainwindow);
 }
 
 void d1vPlayer::resize(unsigned int w, unsigned int h) {
-	setViewport(w, h);
+	winW = w;
+	winH = h;
 	render();
 }
 
@@ -115,6 +151,7 @@ bool d1vPlayer::hasMoreFrames() {
 }
 
 void d1vPlayer::initBuffers() {
+	// video texture
 	glGenVertexArrays(1, &vertexArrayObject);
 	glBindVertexArray(vertexArrayObject);
 
@@ -122,14 +159,14 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &vertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
 	GLfloat vertices[] = {
-		-1.0, -1.0, -1.0,  // left,  bottom, back
-		-1.0,  1.0, -1.0,  // left,  top,    back
-		 1.0, -1.0, -1.0,  // right, bottom, back
-		 1.0,  1.0, -1.0   // right, top,    back
+		-1.0, -1.0,  // left,  bottom
+		-1.0,  1.0,  // left,  top
+		 1.0, -1.0,  // right, bottom
+		 1.0,  1.0   // right, top
 	};
-	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), vertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(vertexPositionAttribute);
-	glVertexAttribPointer(vertexPositionAttribute, 3, GL_FLOAT, false, 0, 0);
+	glVertexAttribPointer(vertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
 
 	// textures
 	glGenBuffers(1, &vertexTextureBuffer);
@@ -152,6 +189,47 @@ void d1vPlayer::initBuffers() {
 		 3, 0, 2
 	};
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), vertexIndices, GL_STATIC_DRAW);
+
+
+	// gui
+	glGenVertexArrays(1, &guiVertexArrayObject);
+	glBindVertexArray(guiVertexArrayObject);
+
+	// vertices
+	glGenBuffers(1, &guiVertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, guiVertexPositionBuffer);
+	GLfloat guiVertices[] = {
+		-0.35, -0.75,  // left,  bottom
+		-0.35, -0.65,  // left,  top
+		 0.35, -0.75,  // right, bottom
+		 0.35, -0.65   // right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), guiVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexPositionAttribute);
+	glVertexAttribPointer(guiVertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// colors
+	glGenBuffers(1, &guiVertexColorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, guiVertexColorBuffer);
+	GLfloat guiColors[] = {
+		0.70, 0.88, 0.91, 0.35,  // left,  bottom
+		0.70, 0.88, 0.91, 0.35,  // left,  top
+		0.70, 0.88, 0.91, 0.35,  // right, bottom
+		0.70, 0.88, 0.91, 0.35   // right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), guiColors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexColorAttribute);
+	glVertexAttribPointer(guiVertexColorAttribute, 4, GL_FLOAT, false, 0, 0);
+
+	// faces of triangles
+	glGenBuffers(1, &guiVertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, guiVertexIndexBuffer);
+	GLushort guiVertexIndices[] = {
+		 0, 3, 1,
+		 3, 0, 2
+	};
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), guiVertexIndices, GL_STATIC_DRAW);
+
 
 	glBindVertexArray(0);
 }
@@ -190,14 +268,14 @@ void d1vPlayer::updateTextures() {
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void d1vPlayer::initShaders(std::string name) {
+void d1vPlayer::initShaders(string name, GLuint *program) {
 	string vertSource = readFile(exePath + "../d1vplayer/shaders/" + name + ".vert");
 	GLint vertexShader = compileShader(vertSource, GL_VERTEX_SHADER);
 
 	string fragSource = readFile(exePath + "../d1vplayer/shaders/" + name + ".frag");
 	GLint fragmentShader = compileShader(fragSource, GL_FRAGMENT_SHADER);
 	
-	createShaderProgram(name, vertexShader, fragmentShader);
+	createShaderProgram(name, vertexShader, fragmentShader, program);
 }
 
 GLint d1vPlayer::compileShader(string source, GLint type) {
@@ -226,31 +304,35 @@ GLint d1vPlayer::compileShader(string source, GLint type) {
 	}
 }
 
-void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragmentShader) {
+void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragmentShader, GLuint *program) {
 	GLint status;
-	shaderProgram = glCreateProgram();
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
+	*program = glCreateProgram();
+	glAttachShader(*program, vertexShader);
+	glAttachShader(*program, fragmentShader);
 
-	glBindAttribLocation(shaderProgram, 0, "aVertexPosition");
-	glBindAttribLocation(shaderProgram, 1, "aVertexTextureCoord");
-	glBindFragDataLocation(shaderProgram, 0, "FragColor");
+	glBindAttribLocation(*program, 0, "aVertexPosition");
+	if (name == "texture") glBindAttribLocation(*program, 1, "aVertexTextureCoord");
+	if (name == "color")   glBindAttribLocation(*program, 1, "aVertexColor");
+	glBindFragDataLocation(*program, 0, "FragColor");
 
-	glLinkProgram(shaderProgram);
+	glLinkProgram(*program);
 
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
+	glGetProgramiv(*program, GL_LINK_STATUS, &status);
 	if(status == 0) {
 		fprintf(stderr, "Unable to initialize the shader program\n");
 	}
 
 	// set vertex array
-	vertexPositionAttribute = glGetAttribLocation(shaderProgram, "aVertexPosition");
+	if (name == "texture") vertexPositionAttribute = glGetAttribLocation(*program, "aVertexPosition");
+	if (name == "color")   guiVertexPositionAttribute = glGetAttribLocation(*program, "aVertexPosition");
 	// set texture coord array
-	vertexTextureAttribute = glGetAttribLocation(shaderProgram, "aVertexTextureCoord");
+	if (name == "texture") vertexTextureAttribute = glGetAttribLocation(*program, "aVertexTextureCoord");
+	// set color array
+	if (name == "color")   guiVertexColorAttribute = glGetAttribLocation(*program, "aVertexColor");
 	// set image textures
-	dxt1Uniform   = glGetUniformLocation(shaderProgram, "image");
+	if (name == "texture") dxt1Uniform = glGetUniformLocation(*program, "image");
 
-	glUseProgram(shaderProgram);
+	glUseProgram(*program);
 }
 
 string d1vPlayer::readFile(string filename) {
