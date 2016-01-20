@@ -286,9 +286,13 @@ void SDL_MainLoop() {
 		do {
 			switch (event.type) {
 				case SDL_KEYDOWN:
+					renderer->showGui(true);
+					resetGuiTimeout();
 					onKeyPress(event.key);
 					break;
 				case SDL_KEYUP:
+					renderer->showGui(true);
+					resetGuiTimeout();
 					onKeyRelease(event.key);
 					break;
 				case SDL_MOUSEMOTION:
