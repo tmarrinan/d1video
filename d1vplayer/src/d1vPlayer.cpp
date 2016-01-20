@@ -311,8 +311,8 @@ void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragm
 	glAttachShader(*program, fragmentShader);
 
 	glBindAttribLocation(*program, 0, "aVertexPosition");
-	if (name == "texture") glBindAttribLocation(*program, 1, "aVertexTextureCoord");
-	if (name == "color")   glBindAttribLocation(*program, 1, "aVertexColor");
+	if (name == "texture")    glBindAttribLocation(*program, 1, "aVertexTextureCoord");
+	else if (name == "color") glBindAttribLocation(*program, 1, "aVertexColor");
 	glBindFragDataLocation(*program, 0, "FragColor");
 
 	glLinkProgram(*program);
@@ -322,15 +322,20 @@ void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragm
 		fprintf(stderr, "Unable to initialize the shader program\n");
 	}
 
-	// set vertex array
-	if (name == "texture") vertexPositionAttribute = glGetAttribLocation(*program, "aVertexPosition");
-	if (name == "color")   guiVertexPositionAttribute = glGetAttribLocation(*program, "aVertexPosition");
-	// set texture coord array
-	if (name == "texture") vertexTextureAttribute = glGetAttribLocation(*program, "aVertexTextureCoord");
-	// set color array
-	if (name == "color")   guiVertexColorAttribute = glGetAttribLocation(*program, "aVertexColor");
-	// set image textures
-	if (name == "texture") dxt1Uniform = glGetUniformLocation(*program, "image");
+	if (name == "texture") {
+		// set vertex array
+		vertexPositionAttribute = glGetAttribLocation(*program, "aVertexPosition");
+		// set texture coord array
+		vertexTextureAttribute = glGetAttribLocation(*program, "aVertexTextureCoord");
+		// set image textures
+		dxt1Uniform = glGetUniformLocation(*program, "image");
+	}
+	else if (name == "color") {
+		// set vertex array
+		guiVertexPositionAttribute = glGetAttribLocation(*program, "aVertexPosition");
+		// set color array
+		guiVertexColorAttribute = glGetAttribLocation(*program, "aVertexColor");
+	}
 
 	glUseProgram(*program);
 }
