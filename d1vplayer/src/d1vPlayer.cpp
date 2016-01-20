@@ -576,6 +576,14 @@ void d1vPlayer::setPaused(bool paused) {
 	isPaused = paused;
 }
 
+void d1vPlayer::showGui(bool show) {
+	GLfloat oldOpacity = guiOpacity;
+	if (show) guiOpacity = 1.0;
+	else      guiOpacity = 0.0;
+
+	if (oldOpacity != guiOpacity) render();
+}
+
 void d1vPlayer::rewind() {
 	fseek(d1vF, 14, SEEK_SET);
 	eof = false;

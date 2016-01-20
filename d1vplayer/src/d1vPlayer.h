@@ -96,7 +96,7 @@ private:
 	GLint guiVertexColorAttribute;
 
 	bool isPaused;
-	double guiOpacity;
+	GLfloat guiOpacity;
 
 	std::string exePath;
 	std::string vidFile;
@@ -133,6 +133,7 @@ public:
 	void loadDXT1(std::string filename);
 	unsigned int getPlaybackFps();
 	void setPaused(bool paused);
+	void showGui(bool show);
 	void rewind();
 	void close();
 };
