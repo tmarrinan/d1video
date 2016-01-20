@@ -63,16 +63,39 @@ private:
 	GLint vertexTextureAttribute;
 
 	GLint dxt1Uniform;
+	GLint translateUniform;
+	GLint opacityUniform;
 
 	GLuint guiVertexArrayObject;
 	GLuint guiVertexPositionBuffer;
 	GLuint guiVertexColorBuffer;
 	GLuint guiVertexIndexBuffer;
 
+	GLuint playVertexArrayObject;
+	GLuint playVertexPositionBuffer;
+	GLuint playVertexColorBuffer;
+	GLuint playVertexIndexBuffer;
+
+	GLuint pauseVertexArrayObject;
+	GLuint pauseVertexPositionBuffer;
+	GLuint pauseVertexColorBuffer;
+	GLuint pauseVertexIndexBuffer;
+
+	GLuint sliderVertexArrayObject;
+	GLuint sliderVertexPositionBuffer;
+	GLuint sliderVertexColorBuffer;
+	GLuint sliderVertexIndexBuffer;
+
+	GLuint knobVertexArrayObject;
+	GLuint knobVertexPositionBuffer;
+	GLuint knobVertexColorBuffer;
+	GLuint knobVertexIndexBuffer;
+
 	GLuint guiShaderProgram;
 	GLint guiVertexPositionAttribute;
 	GLint guiVertexColorAttribute;
 
+	bool isPaused;
 	double guiOpacity;
 
 	std::string exePath;
@@ -84,6 +107,7 @@ private:
 
 	FILE *d1vF;
 	bool eof;
+	unsigned int currFrame;
 	unsigned int frameW;
 	unsigned int frameH;
 	unsigned int frameSize;
@@ -108,6 +132,7 @@ public:
 	std::string readFile(std::string filename);
 	void loadDXT1(std::string filename);
 	unsigned int getPlaybackFps();
+	void setPaused(bool paused);
 	void rewind();
 	void close();
 };

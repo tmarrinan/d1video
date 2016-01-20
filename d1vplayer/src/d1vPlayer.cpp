@@ -56,7 +56,9 @@ using namespace std;
 d1vPlayer::d1vPlayer(SDL_Window *win, string exe) {
 	mainwindow = win;
 	exePath = exe;
+	currFrame = 0;
 	eof = false;
+	isPaused = false;
 	guiOpacity = 1.0;
 }
 
@@ -133,7 +135,30 @@ void d1vPlayer::render() {
 		glUseProgram(guiShaderProgram);
 		setGuiViewport();
 
+		glUniform1f(opacityUniform, guiOpacity);
+
+		glUniform2f(translateUniform, 0.0, 0.0);
 		glBindVertexArray(guiVertexArrayObject);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+
+		if (isPaused) {
+			glUniform2f(translateUniform, 0.0, 0.0);
+			glBindVertexArray(playVertexArrayObject);
+			glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, 0);
+		}
+		else {
+			glUniform2f(translateUniform, 0.0, 0.0);
+			glBindVertexArray(pauseVertexArrayObject);
+			glDrawElements(GL_TRIANGLES, 12, GL_UNSIGNED_SHORT, 0);
+		}
+
+		glUniform2f(translateUniform, 0.0, 0.0);
+		glBindVertexArray(sliderVertexArrayObject);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+
+		GLfloat t = ((GLfloat)currFrame / (GLfloat)numFrames) * 0.46;
+		glUniform2f(translateUniform, t, 0.0);
+		glBindVertexArray(knobVertexArrayObject);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 	}
 
@@ -191,7 +216,7 @@ void d1vPlayer::initBuffers() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), vertexIndices, GL_STATIC_DRAW);
 
 
-	// gui
+	// gui bar
 	glGenVertexArrays(1, &guiVertexArrayObject);
 	glBindVertexArray(guiVertexArrayObject);
 
@@ -202,7 +227,7 @@ void d1vPlayer::initBuffers() {
 		-0.35, -0.75,  // left,  bottom
 		-0.35, -0.65,  // left,  top
 		 0.35, -0.75,  // right, bottom
-		 0.35, -0.65   // right, top
+		 0.35, -0.65,  // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), guiVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -212,10 +237,10 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &guiVertexColorBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, guiVertexColorBuffer);
 	GLfloat guiColors[] = {
-		0.70, 0.88, 0.91, 0.35,  // left,  bottom
-		0.70, 0.88, 0.91, 0.35,  // left,  top
-		0.70, 0.88, 0.91, 0.35,  // right, bottom
-		0.70, 0.88, 0.91, 0.35   // right, top
+		0.54, 0.67, 0.70, 0.75,  // left,  bottom
+		0.54, 0.67, 0.70, 0.75,  // left,  top
+		0.54, 0.67, 0.70, 0.75,  // right, bottom
+		0.54, 0.67, 0.70, 0.75,  // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), guiColors, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexColorAttribute);
@@ -229,6 +254,173 @@ void d1vPlayer::initBuffers() {
 		 3, 0, 2
 	};
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), guiVertexIndices, GL_STATIC_DRAW);
+
+
+	// gui - play
+	glGenVertexArrays(1, &playVertexArrayObject);
+	glBindVertexArray(playVertexArrayObject);
+
+	// vertices
+	glGenBuffers(1, &playVertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, playVertexPositionBuffer);
+	GLfloat playVertices[] = {
+		-0.32, -0.73,  // left,  bottom
+		-0.32, -0.67,  // left,  top
+		-0.26, -0.70   // right, middle
+	};
+	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(GLfloat), playVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexPositionAttribute);
+	glVertexAttribPointer(guiVertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// colors
+	glGenBuffers(1, &playVertexColorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, playVertexColorBuffer);
+	GLfloat playColors[] = {
+		0.70, 0.88, 0.91, 1.00,  // left,  bottom
+		0.70, 0.88, 0.91, 1.00,  // left,  top
+		0.70, 0.88, 0.91, 1.00   // right, middle
+	};
+	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), playColors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexColorAttribute);
+	glVertexAttribPointer(guiVertexColorAttribute, 4, GL_FLOAT, false, 0, 0);
+
+	// faces of triangles
+	glGenBuffers(1, &playVertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, playVertexIndexBuffer);
+	GLushort playVertexIndices[] = {
+		 0, 2, 1
+	};
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 3 * sizeof(GLushort), playVertexIndices, GL_STATIC_DRAW);
+
+
+	// gui - pause
+	glGenVertexArrays(1, &pauseVertexArrayObject);
+	glBindVertexArray(pauseVertexArrayObject);
+
+	// vertices
+	glGenBuffers(1, &pauseVertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, pauseVertexPositionBuffer);
+	GLfloat pauseVertices[] = {
+		-0.32, -0.73,  // left  - left,  bottom
+		-0.32, -0.67,  // left  - left,  top
+		-0.30, -0.73,  // left  - right, bottom
+		-0.30, -0.67,  // left  - right, top
+		-0.28, -0.73,  // right - left,  bottom
+		-0.28, -0.67,  // right - left,  top
+		-0.26, -0.73,  // right - right, bottom
+		-0.26, -0.67,  // right - right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), pauseVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexPositionAttribute);
+	glVertexAttribPointer(guiVertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// colors
+	glGenBuffers(1, &pauseVertexColorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, pauseVertexColorBuffer);
+	GLfloat pauseColors[] = {
+		0.70, 0.88, 0.91, 1.00,  // left  - left,  bottom
+		0.70, 0.88, 0.91, 1.00,  // left  - left,  top
+		0.70, 0.88, 0.91, 1.00,  // left  - right, bottom
+		0.70, 0.88, 0.91, 1.00,  // left  - right, top
+		0.70, 0.88, 0.91, 1.00,  // right - left,  bottom
+		0.70, 0.88, 0.91, 1.00,  // right - left,  top
+		0.70, 0.88, 0.91, 1.00,  // right - right, bottom
+		0.70, 0.88, 0.91, 1.00   // right - right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 32 * sizeof(GLfloat), pauseColors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexColorAttribute);
+	glVertexAttribPointer(guiVertexColorAttribute, 4, GL_FLOAT, false, 0, 0);
+
+	// faces of triangles
+	glGenBuffers(1, &pauseVertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, pauseVertexIndexBuffer);
+	GLushort pauseVertexIndices[] = {
+		 0, 3, 1,
+		 3, 0, 2,
+		 4, 7, 5,
+		 7, 4, 6
+	};
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 12 * sizeof(GLushort), pauseVertexIndices, GL_STATIC_DRAW);
+
+
+	// gui - time slider
+	glGenVertexArrays(1, &sliderVertexArrayObject);
+	glBindVertexArray(sliderVertexArrayObject);
+
+	// vertices
+	glGenBuffers(1, &sliderVertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, sliderVertexPositionBuffer);
+	GLfloat sliderVertices[] = {
+		-0.230, -0.705,  // left,  bottom
+		-0.230, -0.695,  // left,  top
+		 0.230, -0.705,  // right, bottom
+		 0.230, -0.695   // right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), sliderVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexPositionAttribute);
+	glVertexAttribPointer(guiVertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// colors
+	glGenBuffers(1, &sliderVertexColorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, sliderVertexColorBuffer);
+	GLfloat sliderColors[] = {
+		0.70, 0.88, 0.91, 1.00,  // left,  bottom
+		0.70, 0.88, 0.91, 1.00,  // left,  top
+		0.70, 0.88, 0.91, 1.00,  // right, bottom
+		0.70, 0.88, 0.91, 1.00   // right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), sliderColors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexColorAttribute);
+	glVertexAttribPointer(guiVertexColorAttribute, 4, GL_FLOAT, false, 0, 0);
+
+	// faces of triangles
+	glGenBuffers(1, &sliderVertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sliderVertexIndexBuffer);
+	GLushort sliderVertexIndices[] = {
+		 0, 3, 1,
+		 3, 0, 2
+	};
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), sliderVertexIndices, GL_STATIC_DRAW);
+
+
+	// gui - time knob
+	glGenVertexArrays(1, &knobVertexArrayObject);
+	glBindVertexArray(knobVertexArrayObject);
+
+	// vertices
+	glGenBuffers(1, &knobVertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, knobVertexPositionBuffer);
+	GLfloat knobVertices[] = {
+		-0.24, -0.72,  // left,  bottom
+		-0.24, -0.68,  // left,  top
+		-0.22, -0.72,  // right, bottom
+		-0.22, -0.68   // right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), knobVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexPositionAttribute);
+	glVertexAttribPointer(guiVertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// colors
+	glGenBuffers(1, &knobVertexColorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, knobVertexColorBuffer);
+	GLfloat knobColors[] = {
+		0.77, 0.96, 1.00, 1.00,  // left,  bottom
+		0.77, 0.96, 1.00, 1.00,  // left,  top
+		0.77, 0.96, 1.00, 1.00,  // right, bottom
+		0.77, 0.96, 1.00, 1.00   // right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), knobColors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexColorAttribute);
+	glVertexAttribPointer(guiVertexColorAttribute, 4, GL_FLOAT, false, 0, 0);
+
+	// faces of triangles
+	glGenBuffers(1, &knobVertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, knobVertexIndexBuffer);
+	GLushort knobVertexIndices[] = {
+		 0, 3, 1,
+		 3, 0, 2
+	};
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), knobVertexIndices, GL_STATIC_DRAW);
 
 
 	glBindVertexArray(0);
@@ -257,6 +449,8 @@ void d1vPlayer::initTextures() {
 
 void d1vPlayer::updateTextures() {
 	size_t result = fread(d1vPixels, 1, frameSize, d1vF);
+
+	currFrame++;
 
 	if (result != frameSize) {
 		eof = true;
@@ -335,6 +529,10 @@ void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragm
 		guiVertexPositionAttribute = glGetAttribLocation(*program, "aVertexPosition");
 		// set color array
 		guiVertexColorAttribute = glGetAttribLocation(*program, "aVertexColor");
+		// set translate uniform
+		translateUniform = glGetUniformLocation(*program, "translate");
+		// set opacity uniform
+		opacityUniform = glGetUniformLocation(*program, "opacity");
 	}
 
 	glUseProgram(*program);
@@ -366,15 +564,22 @@ void d1vPlayer::loadDXT1(string filename) {
 	frameSize = frameW * frameH / 2;
 	d1vPixels = (GLubyte*) malloc(frameSize);
 	fread(d1vPixels, 1, frameSize, d1vF);
+
+	currFrame++;
 }
 
 unsigned int d1vPlayer::getPlaybackFps() {
 	return d1vFps;
 }
 
+void d1vPlayer::setPaused(bool paused) {
+	isPaused = paused;
+}
+
 void d1vPlayer::rewind() {
 	fseek(d1vF, 14, SEEK_SET);
 	eof = false;
+	currFrame = 0;
 }
 
 void d1vPlayer::close() {

@@ -7,5 +7,5 @@ out vec2 vTexCoord;
 
 void main() {
 	vTexCoord = aVertexTextureCoord;
-	gl_Position = vec4(aVertexPosition, -1.0, 1.0);
+	gl_Position = vec4(aVertexPosition, 0.0, 1.0);
 }

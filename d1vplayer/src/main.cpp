@@ -178,8 +178,11 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 			break;
 		case SDL_SCANCODE_SPACE:
 			paused = !paused;
+			renderer->setPaused(paused);
 			if (paused) {
 				startPauseTime = SDL_GetTicks();
+				renderer->render();
+				idle();
 			}
 			else {
 				startTime +=  SDL_GetTicks() - startPauseTime;
@@ -279,6 +282,9 @@ void SDL_MainLoop() {
 					}
 					else {
 						paused = true;
+						renderer->setPaused(paused);
+						renderer->render();
+						idle();
 					}
 					break;
 				case SDL_QUIT:
