@@ -13,6 +13,7 @@ DXT1-based Converter and Player for Ultra High Resolution Videos (4K - 16K)
 #### Dependencies: ####
 
 * SDL2
+* SDL2_ttf
 * OpenGL
 * libjpeg
 * libpng
