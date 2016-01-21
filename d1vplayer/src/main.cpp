@@ -32,8 +32,6 @@ SDL_TimerID guiTimer;           // GUI timer
 unsigned int guiT;              // GUI time for animation
 bool fadeGui;
 
-int idleCount = 0;
-
 void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui);
 void idle();
 void nextFrame();
@@ -166,9 +164,6 @@ void idle() {
 	event.user = userevent;
 
 	SDL_PushEvent(&event);
-
-	printf("idle %d (%u)\n", idleCount, SDL_GetTicks());
-	idleCount++;
 }
 
 void nextFrame() {
