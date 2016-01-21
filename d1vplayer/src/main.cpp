@@ -112,7 +112,6 @@ int main(int argc, char **argv) {
 	startTime = SDL_GetTicks();
 	renderer->render();
 	nextFrame();
-	idle();
 
 	SDL_MainLoop();
 
