@@ -283,7 +283,7 @@ void exitFullScreen() {
 
 void resetGuiTimeout() {
 	if (guiTimer != 0) SDL_RemoveTimer(guiTimer);
-	guiTimer = SDL_AddTimer(3000, hideGui, NULL);
+	guiTimer = SDL_AddTimer(2500, hideGui, NULL);
 	guiT = 0;
 }
 
