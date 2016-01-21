@@ -5,14 +5,14 @@ ifeq ($(MACHINE),Darwin)
 	OPENGL_INC= -FOpenGL
 	OPENGL_LIB= -framework OpenGL
 	SDL_INC= `sdl2-config --cflags`
-	SDL_LIB= `sdl2-config --libs`
+	SDL_LIB= `sdl2-config --libs` -lSDL2_ttf
 	IMG_INC= -I/usr/local/include
 	IMG_LIB= -L/usr/local/lib -lpng -ljpeg
 else
 	OPENGL_INC= -I/usr/X11R6/include
 	OPENGL_LIB= -L/usr/lib64 -lGL -lGLU
 	SDL_INC= `sdl2-config --cflags`
-	SDL_LIB= `sdl2-config --libs`
+	SDL_LIB= `sdl2-config --libs` -lSDL2_ttf
 	IMG_INC= -I/usr/include
 	IMG_LIB= -L/usr/lib64 -lpng -ljpeg
 endif

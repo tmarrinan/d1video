@@ -64,6 +64,7 @@ d1vPlayer::d1vPlayer(SDL_Window *win, string exe) {
 
 void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h) {
 	SDL_GL_SetSwapInterval(1);
+	TTF_Init();
 
 	vidFile = inFile;
 	winW = w;
@@ -79,6 +80,8 @@ void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h) {
 	initShaders("color", &guiShaderProgram);
 	initBuffers();
 	initTextures();
+	loadFonts();
+	updateFontTexture(videoTime(0));
 }
 
 void d1vPlayer::setVideoViewport() {
@@ -122,10 +125,11 @@ void d1vPlayer::render() {
 	// render video texture
 	glUseProgram(shaderProgram);
 	setVideoViewport();
+	glUniform1f(texOpacityUniform, 1.0);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, vidTexture);
-	glUniform1i(dxt1Uniform, 0);
+	glUniform1i(imageUniform, 0);
 
 	glBindVertexArray(vertexArrayObject);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
@@ -134,7 +138,6 @@ void d1vPlayer::render() {
 	if (guiOpacity > 0.0) {
 		glUseProgram(guiShaderProgram);
 		setGuiViewport();
-
 		glUniform1f(opacityUniform, guiOpacity);
 
 		glUniform2f(translateUniform, 0.0, 0.0);
@@ -160,6 +163,20 @@ void d1vPlayer::render() {
 		glUniform2f(translateUniform, t, 0.0);
 		glBindVertexArray(knobVertexArrayObject);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+
+		glUniform2f(translateUniform, 0.0, 0.0);
+		glBindVertexArray(rewindVertexArrayObject);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+
+		glUseProgram(shaderProgram);
+		glUniform1f(texOpacityUniform, guiOpacity);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, fontTexture);
+		glUniform1i(imageUniform, 0);
+
+		glBindVertexArray(textVertexArrayObject);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 	}
 
 	SDL_GL_SwapWindow(mainwindow);
@@ -168,7 +185,6 @@ void d1vPlayer::render() {
 void d1vPlayer::resize(unsigned int w, unsigned int h) {
 	winW = w;
 	winH = h;
-	render();
 }
 
 bool d1vPlayer::hasMoreFrames() {
@@ -224,10 +240,10 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &guiVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, guiVertexPositionBuffer);
 	GLfloat guiVertices[] = {
-		-0.35, -0.75,  // left,  bottom
-		-0.35, -0.65,  // left,  top
-		 0.35, -0.75,  // right, bottom
-		 0.35, -0.65,  // right, top
+		-0.47, -0.75,  // left,  bottom
+		-0.47, -0.65,  // left,  top
+		 0.47, -0.75,  // right, bottom
+		 0.47, -0.65,  // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), guiVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -264,9 +280,9 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &playVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, playVertexPositionBuffer);
 	GLfloat playVertices[] = {
-		-0.32, -0.73,  // left,  bottom
-		-0.32, -0.67,  // left,  top
-		-0.26, -0.70   // right, middle
+		-0.44, -0.73,  // left,  bottom
+		-0.44, -0.67,  // left,  top
+		-0.38, -0.70   // right, middle
 	};
 	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(GLfloat), playVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -301,14 +317,14 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &pauseVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, pauseVertexPositionBuffer);
 	GLfloat pauseVertices[] = {
-		-0.32, -0.73,  // left  - left,  bottom
-		-0.32, -0.67,  // left  - left,  top
-		-0.30, -0.73,  // left  - right, bottom
-		-0.30, -0.67,  // left  - right, top
-		-0.28, -0.73,  // right - left,  bottom
-		-0.28, -0.67,  // right - left,  top
-		-0.26, -0.73,  // right - right, bottom
-		-0.26, -0.67,  // right - right, top
+		-0.44, -0.73,  // left  - left,  bottom
+		-0.44, -0.67,  // left  - left,  top
+		-0.42, -0.73,  // left  - right, bottom
+		-0.42, -0.67,  // left  - right, top
+		-0.40, -0.73,  // right - left,  bottom
+		-0.40, -0.67,  // right - left,  top
+		-0.38, -0.73,  // right - right, bottom
+		-0.38, -0.67,  // right - right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), pauseVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -351,10 +367,10 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &sliderVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, sliderVertexPositionBuffer);
 	GLfloat sliderVertices[] = {
-		-0.230, -0.705,  // left,  bottom
-		-0.230, -0.695,  // left,  top
-		 0.230, -0.705,  // right, bottom
-		 0.230, -0.695   // right, top
+		-0.350, -0.705,  // left,  bottom
+		-0.350, -0.695,  // left,  top
+		 0.110, -0.705,  // right, bottom
+		 0.110, -0.695   // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), sliderVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -391,10 +407,10 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &knobVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, knobVertexPositionBuffer);
 	GLfloat knobVertices[] = {
-		-0.24, -0.72,  // left,  bottom
-		-0.24, -0.68,  // left,  top
-		-0.22, -0.72,  // right, bottom
-		-0.22, -0.68   // right, top
+		-0.36, -0.72,  // left,  bottom
+		-0.36, -0.68,  // left,  top
+		-0.34, -0.72,  // right, bottom
+		-0.34, -0.68   // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), knobVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -421,6 +437,90 @@ void d1vPlayer::initBuffers() {
 		 3, 0, 2
 	};
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), knobVertexIndices, GL_STATIC_DRAW);
+
+
+	// gui - rewind
+	glGenVertexArrays(1, &rewindVertexArrayObject);
+	glBindVertexArray(rewindVertexArrayObject);
+
+	// vertices
+	glGenBuffers(1, &rewindVertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, rewindVertexPositionBuffer);
+	GLfloat rewindVertices[] = {
+		0.38, -0.70,  // left -  left,  middle
+		0.41, -0.67,  // left -  right, bottom
+		0.41, -0.73,  // left -  right, top
+		0.41, -0.70,  // right - left,  middle
+		0.44, -0.67,  // right - right, bottom
+		0.44, -0.73   // right - right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), rewindVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexPositionAttribute);
+	glVertexAttribPointer(guiVertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// colors
+	glGenBuffers(1, &rewindVertexColorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, rewindVertexColorBuffer);
+	GLfloat rewindColors[] = {
+		0.77, 0.96, 1.00, 1.00,  // left -  left,  middle
+		0.77, 0.96, 1.00, 1.00,  // left -  right, bottom
+		0.77, 0.96, 1.00, 1.00,  // left -  right, top
+		0.77, 0.96, 1.00, 1.00,  // right - left,  middle
+		0.77, 0.96, 1.00, 1.00,  // right - right, bottom
+		0.77, 0.96, 1.00, 1.00   // right - right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 24 * sizeof(GLfloat), rewindColors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexColorAttribute);
+	glVertexAttribPointer(guiVertexColorAttribute, 4, GL_FLOAT, false, 0, 0);
+
+	// faces of triangles
+	glGenBuffers(1, &rewindVertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rewindVertexIndexBuffer);
+	GLushort rewindVertexIndices[] = {
+		 0, 1, 2,
+		 3, 4, 5
+	};
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), rewindVertexIndices, GL_STATIC_DRAW);
+
+
+	// gui - time text
+	glGenVertexArrays(1, &textVertexArrayObject);
+	glBindVertexArray(textVertexArrayObject);
+
+	// vertices
+	glGenBuffers(1, &textVertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, textVertexPositionBuffer);
+	GLfloat textVertices[] = {
+		0.14, -0.72,  // left,  bottom
+		0.14, -0.68,  // left,  top
+		0.347, -0.72,  // right, bottom
+		0.347, -0.68   // right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), textVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(vertexPositionAttribute);
+	glVertexAttribPointer(vertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// texture coords
+	glGenBuffers(1, &textVertexTextureBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, textVertexTextureBuffer);
+	GLfloat textTexCoords[] = {
+		0.0, 1.0,   // left,  bottom
+		0.0, 0.0,   // left,  top
+		1.0, 1.0,   // right, bottom
+		1.0, 0.0,   // right, top
+	};
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), textTexCoords, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(vertexTextureAttribute);
+	glVertexAttribPointer(vertexTextureAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// faces of triangles
+	glGenBuffers(1, &textVertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textVertexIndexBuffer);
+	GLushort textVertexIndices[] = {
+		 0, 3, 1,
+		 3, 0, 2
+	};
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), textVertexIndices, GL_STATIC_DRAW);
 
 
 	glBindVertexArray(0);
@@ -460,6 +560,8 @@ void d1vPlayer::updateTextures() {
 	glBindTexture(GL_TEXTURE_2D, vidTexture);
 	glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, frameW, frameH, 0, frameSize, d1vPixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+	updateFontTexture(videoTime((int)((double)currFrame / (double)d1vFps)));
 }
 
 void d1vPlayer::initShaders(string name, GLuint *program) {
@@ -522,7 +624,9 @@ void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragm
 		// set texture coord array
 		vertexTextureAttribute = glGetAttribLocation(*program, "aVertexTextureCoord");
 		// set image textures
-		dxt1Uniform = glGetUniformLocation(*program, "image");
+		imageUniform = glGetUniformLocation(*program, "image");
+		// set opacity uniform
+		texOpacityUniform = glGetUniformLocation(*program, "opacity");
 	}
 	else if (name == "color") {
 		// set vertex array
@@ -536,6 +640,32 @@ void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragm
 	}
 
 	glUseProgram(*program);
+}
+
+void d1vPlayer::loadFonts() {
+	font = TTF_OpenFont((exePath + "../d1vplayer/fonts/Arial.ttf").c_str(), 72);
+	
+	glGenTextures(1, &fontTexture);
+	glBindTexture(GL_TEXTURE_2D, fontTexture);
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void d1vPlayer::updateFontTexture(string text) {
+	glBindTexture(GL_TEXTURE_2D, fontTexture);
+
+	SDL_Color color = {196, 245, 255};
+	SDL_Surface *sFont = TTF_RenderText_Blended(font, text.c_str(), color);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sFont->w, sFont->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, sFont->pixels);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+	SDL_FreeSurface(sFont);
 }
 
 string d1vPlayer::readFile(string filename) {
@@ -561,11 +691,23 @@ void d1vPlayer::loadDXT1(string filename) {
 	fread(&numFrames, 4, 1, d1vF);
 	fread(&d1vFps,    2, 1, d1vF);
 
+	duration = (int)((double)numFrames / (double)d1vFps);
 	frameSize = frameW * frameH / 2;
 	d1vPixels = (GLubyte*) malloc(frameSize);
 	fread(d1vPixels, 1, frameSize, d1vF);
 
 	currFrame++;
+}
+
+string d1vPlayer::videoTime(int time) {
+	char vt[20];
+	int cm = time / 60;
+	int cs = time % 60;
+	int tm = duration / 60;
+	int ts = duration % 60;
+	sprintf(vt, "%02d:%02d / %02d:%02d", cm, cs, tm, ts);
+
+	return vt;
 }
 
 unsigned int d1vPlayer::getPlaybackFps() {
@@ -576,12 +718,8 @@ void d1vPlayer::setPaused(bool paused) {
 	isPaused = paused;
 }
 
-void d1vPlayer::showGui(bool show) {
-	GLfloat oldOpacity = guiOpacity;
-	if (show) guiOpacity = 1.0;
-	else      guiOpacity = 0.0;
-
-	if (oldOpacity != guiOpacity) render();
+void d1vPlayer::setGuiOpacity(GLfloat opacity) {
+	guiOpacity = opacity;
 }
 
 void d1vPlayer::rewind() {

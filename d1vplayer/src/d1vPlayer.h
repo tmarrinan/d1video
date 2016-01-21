@@ -2,6 +2,8 @@
 #define D1VPLAYER_H
 #include <string>
 #include <SDL.h>
+#include <SDL_ttf.h>
+#include <sys/stat.h>
 
 #ifdef _WIN32
 	#include <GL/gl.h>
@@ -62,9 +64,10 @@ private:
 	GLint vertexPositionAttribute;
 	GLint vertexTextureAttribute;
 
-	GLint dxt1Uniform;
+	GLint imageUniform;
 	GLint translateUniform;
 	GLint opacityUniform;
+	GLint texOpacityUniform;
 
 	GLuint guiVertexArrayObject;
 	GLuint guiVertexPositionBuffer;
@@ -91,9 +94,24 @@ private:
 	GLuint knobVertexColorBuffer;
 	GLuint knobVertexIndexBuffer;
 
+	GLuint rewindVertexArrayObject;
+	GLuint rewindVertexPositionBuffer;
+	GLuint rewindVertexColorBuffer;
+	GLuint rewindVertexIndexBuffer;
+
+	GLuint textVertexArrayObject;
+	GLuint textVertexPositionBuffer;
+	GLuint textVertexTextureBuffer;
+	GLuint textVertexIndexBuffer;
+
 	GLuint guiShaderProgram;
 	GLint guiVertexPositionAttribute;
 	GLint guiVertexColorAttribute;
+
+	TTF_Font *font;
+	GLuint fontTexture;
+
+	int duration;
 
 	bool isPaused;
 	GLfloat guiOpacity;
@@ -129,11 +147,14 @@ public:
 	void initShaders(std::string name, GLuint *program);
 	GLint compileShader(std::string source, GLint type);
 	void createShaderProgram(std::string name, GLint vertexShader, GLint fragmentShader, GLuint *program);
+	void loadFonts();
+	void updateFontTexture(std::string text);
 	std::string readFile(std::string filename);
 	void loadDXT1(std::string filename);
+	std::string videoTime(int time);
 	unsigned int getPlaybackFps();
 	void setPaused(bool paused);
-	void showGui(bool show);
+	void setGuiOpacity(GLfloat opacity);
 	void rewind();
 	void close();
 };

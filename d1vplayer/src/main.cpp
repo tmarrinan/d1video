@@ -12,7 +12,8 @@ using namespace std;
 
 
 unsigned int IDLE = 0;
-unsigned int HIDEGUI = 1;
+unsigned int NEXTFRAME = 1;
+unsigned int HIDEGUI = 2;
 
 SDL_Window *mainwindow;         // Window handle
 SDL_GLContext maincontext;      // OpenGL context handle
@@ -27,9 +28,11 @@ unsigned int startTime;         // Time used for proper animation
 unsigned int startPauseTime;    // 
 SDL_TimerID animationTimer;     // Animation timer
 SDL_TimerID guiTimer;           // GUI timer
+unsigned int guiT;              // GUI time for animation
 
 void parseArguments(int argc, char **argv, string *exe, string *inputFile);
 void idle();
+void nextFrame();
 unsigned int renderNextFrame(unsigned int interval, void *param);
 void onResize(unsigned int w, unsigned int h);
 void onKeyPress(SDL_KeyboardEvent &key);
@@ -106,6 +109,7 @@ int main(int argc, char **argv) {
 	framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
 	startTime = SDL_GetTicks();
 	renderer->render();
+	nextFrame();
 	idle();
 
 	SDL_MainLoop();
@@ -132,6 +136,21 @@ void parseArguments(int argc, char **argv, string *exe, string *inputFile) {
 }
 
 void idle() {
+	SDL_Event event;
+	SDL_UserEvent userevent;
+
+	userevent.type = SDL_USEREVENT;
+	userevent.code = 0;
+	userevent.data1 = &IDLE;
+	userevent.data2 = NULL;
+
+	event.type = SDL_USEREVENT;
+	event.user = userevent;
+
+	SDL_PushEvent(&event);
+}
+
+void nextFrame() {
 	framecount++;
 	if (paused) return;
 
@@ -152,7 +171,7 @@ unsigned int renderNextFrame(unsigned int interval, void *param) {
 
 	userevent.type = SDL_USEREVENT;
 	userevent.code = 0;
-	userevent.data1 = &IDLE;
+	userevent.data1 = &NEXTFRAME;
 	userevent.data2 = NULL;
 
 	event.type = SDL_USEREVENT;
@@ -204,7 +223,6 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 			renderer->setPaused(paused);
 			if (paused) {
 				startPauseTime = SDL_GetTicks();
-				renderer->render();
 			}
 			else {
 				startTime +=  SDL_GetTicks() - startPauseTime;
@@ -266,6 +284,7 @@ void exitFullScreen() {
 void resetGuiTimeout() {
 	if (guiTimer != 0) SDL_RemoveTimer(guiTimer);
 	guiTimer = SDL_AddTimer(3000, hideGui, NULL);
+	guiT = 0;
 }
 
 void finishAndQuit() {
@@ -286,17 +305,17 @@ void SDL_MainLoop() {
 		do {
 			switch (event.type) {
 				case SDL_KEYDOWN:
-					renderer->showGui(true);
+					renderer->setGuiOpacity(1.0);
 					resetGuiTimeout();
 					onKeyPress(event.key);
 					break;
 				case SDL_KEYUP:
-					renderer->showGui(true);
+					renderer->setGuiOpacity(1.0);
 					resetGuiTimeout();
 					onKeyRelease(event.key);
 					break;
 				case SDL_MOUSEMOTION:
-					renderer->showGui(true);
+					renderer->setGuiOpacity(1.0);
 					resetGuiTimeout();
 					break;
 				case SDL_WINDOWEVENT:
@@ -310,20 +329,25 @@ void SDL_MainLoop() {
 					}
 					break;
 				case SDL_USEREVENT:
-					if (*(unsigned int*)event.user.data1 == IDLE) {
+					if (*(unsigned int*)event.user.data1 == NEXTFRAME) {
 						if (renderer->hasMoreFrames()) {
 							renderer->updateTextures();
-							renderer->render();
-							idle();
+							nextFrame();
 						}
 						else {
 							paused = true;
 							renderer->setPaused(paused);
-							renderer->render();
 						}
 					}
 					else if (*(unsigned int*)event.user.data1 == HIDEGUI) {
-						renderer->showGui(false);
+						guiT = SDL_GetTicks() + 501;
+						renderer->setGuiOpacity(0.0);
+					}
+					else if (*(unsigned int*)event.user.data1 == IDLE) {
+						unsigned int t = SDL_GetTicks() + 501 - guiT;
+						if (t <= 500) {
+							renderer->setGuiOpacity(1.0 - ((float)t/500.0));
+						}
 					}
 					break;
 				case SDL_QUIT:
@@ -335,5 +359,8 @@ void SDL_MainLoop() {
 					break;
 			}
 		} while (SDL_PollEvent(&event));
+
+		renderer->render();
+		idle();
     }
 }
