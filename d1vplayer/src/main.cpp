@@ -17,20 +17,20 @@ unsigned int HIDEGUI = 2;
 
 SDL_Window *mainwindow;         // Window handle
 SDL_GLContext maincontext;      // OpenGL context handle
-d1vPlayer *renderer;           // Renderer
+d1vPlayer *renderer;            // Renderer
 string d1vFile;                 // Input dxt1 video
 string exePath;                 // Executable path
-bool showGui;
+bool showGui;                   // Whether or not to show the gui
 unsigned int framecount;        // Current frame being rendered
 unsigned int framerate;         // Playback framerate (milliseconds per frame)
 bool paused;                    // Whether or not video is paused
 bool ctrl;                      // Whether or not user is holding 'ctrl' key ('cmd' for Mac OS X)
 unsigned int startTime;         // Time used for proper animation
-unsigned int startPauseTime;    // 
+unsigned int startPauseTime;    // Time used for offset when video is paused
 SDL_TimerID animationTimer;     // Animation timer
 SDL_TimerID guiTimer;           // GUI timer
-unsigned int guiT;              // GUI time for animation
-bool fadeGui;
+unsigned int guiT;              // GUI time counter
+bool fadeGui;                   // Whether or not the gui is currently fading out
 
 void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui);
 void idle();
