@@ -11,7 +11,7 @@ ifeq ($(MACHINE),Darwin)
 else
 	OPENGL_INC= -I/usr/X11R6/include
 	OPENGL_LIB= -L/usr/lib64 -lGL -lGLU
-	SDL_INC= `sdl2-config --cflags`
+	SDL_INC= `sdl2-config --cflags` -I/usr/local/include/SDL2
 	SDL_LIB= `sdl2-config --libs` -lSDL2_ttf
 	IMG_INC= -I/usr/include
 	IMG_LIB= -L/usr/lib64 -lpng -ljpeg
