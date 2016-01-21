@@ -157,6 +157,7 @@ public:
 	unsigned int getPlaybackFps();
 	void setPaused(bool paused);
 	void setGuiOpacity(GLfloat opacity);
+	GLfloat getGuiOpacity();
 	void rewind();
 	void close();
 };

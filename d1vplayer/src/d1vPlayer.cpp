@@ -726,6 +726,10 @@ void d1vPlayer::setGuiOpacity(GLfloat opacity) {
 	guiOpacity = opacity;
 }
 
+GLfloat d1vPlayer::getGuiOpacity() {
+	return guiOpacity;
+}
+
 void d1vPlayer::rewind() {
 	fseek(d1vF, 14, SEEK_SET);
 	eof = false;

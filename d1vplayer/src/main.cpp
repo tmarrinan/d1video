@@ -29,6 +29,7 @@ unsigned int startPauseTime;    //
 SDL_TimerID animationTimer;     // Animation timer
 SDL_TimerID guiTimer;           // GUI timer
 unsigned int guiT;              // GUI time for animation
+bool fadeGui;
 
 void parseArguments(int argc, char **argv, string *exe, string *inputFile);
 void idle();
@@ -61,6 +62,7 @@ int main(int argc, char **argv) {
 	paused = false;
 	ctrl = false;
 	guiTimer = 0;
+	fadeGui = false;
 
 	struct stat info;
 	if (stat(d1vFile.c_str(), &info) != 0) {
@@ -300,7 +302,9 @@ void SDL_Die(const char *msg) {
 
 void SDL_MainLoop() {
     SDL_Event event;
+    bool draw;
 	while (true) {
+		draw = false;
 		SDL_WaitEvent(&event);
 		do {
 			switch (event.type) {
@@ -308,21 +312,25 @@ void SDL_MainLoop() {
 					renderer->setGuiOpacity(1.0);
 					resetGuiTimeout();
 					onKeyPress(event.key);
+					draw = true;
 					break;
 				case SDL_KEYUP:
 					renderer->setGuiOpacity(1.0);
 					resetGuiTimeout();
 					onKeyRelease(event.key);
+					draw = true;
 					break;
 				case SDL_MOUSEMOTION:
 					renderer->setGuiOpacity(1.0);
 					resetGuiTimeout();
+					draw = true;
 					break;
 				case SDL_WINDOWEVENT:
 					switch (event.window.event) {
 						case SDL_WINDOWEVENT_RESIZED:
 						case SDL_WINDOWEVENT_SIZE_CHANGED:
 							onResize(event.window.data1, event.window.data2);
+							draw = true;
 							break;
 						default:
 							break;
@@ -338,15 +346,25 @@ void SDL_MainLoop() {
 							paused = true;
 							renderer->setPaused(paused);
 						}
+						draw = true;
 					}
 					else if (*(unsigned int*)event.user.data1 == HIDEGUI) {
 						guiT = SDL_GetTicks() + 501;
-						renderer->setGuiOpacity(0.0);
+						fadeGui = true;
+						draw = true;
 					}
 					else if (*(unsigned int*)event.user.data1 == IDLE) {
-						unsigned int t = SDL_GetTicks() + 501 - guiT;
-						if (t <= 500) {
-							renderer->setGuiOpacity(1.0 - ((float)t/500.0));
+						if (fadeGui) {
+							unsigned int t = SDL_GetTicks() + 501 - guiT;
+							if (t < 500) {
+								renderer->setGuiOpacity(1.0 - ((float)t/500.0));
+							}
+							else {
+								renderer->setGuiOpacity(0.0);
+								fadeGui = false;
+							}
+
+							draw = true;
 						}
 					}
 					break;
@@ -360,7 +378,9 @@ void SDL_MainLoop() {
 			}
 		} while (SDL_PollEvent(&event));
 
-		renderer->render();
-		idle();
+		if (draw) {
+			renderer->render();
+			idle();
+		}
     }
 }
