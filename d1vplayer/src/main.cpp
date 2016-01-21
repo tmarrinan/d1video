@@ -20,6 +20,7 @@ SDL_GLContext maincontext;      // OpenGL context handle
 d1vPlayer *renderer;           // Renderer
 string d1vFile;                 // Input dxt1 video
 string exePath;                 // Executable path
+bool showGui;
 unsigned int framecount;        // Current frame being rendered
 unsigned int framerate;         // Playback framerate (milliseconds per frame)
 bool paused;                    // Whether or not video is paused
@@ -31,7 +32,7 @@ SDL_TimerID guiTimer;           // GUI timer
 unsigned int guiT;              // GUI time for animation
 bool fadeGui;
 
-void parseArguments(int argc, char **argv, string *exe, string *inputFile);
+void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui);
 void idle();
 void nextFrame();
 unsigned int renderNextFrame(unsigned int interval, void *param);
@@ -54,11 +55,12 @@ int main(int argc, char **argv) {
 		printf("  Options:\n");
 		printf("\n");
 		printf("    -i, --input <FILE>      dxt1 compressed video to show\n");
+		printf("    -n, --no-gui            open player without graphic ui\n");
 		printf("\n");
 		return 0;
 	}
 
-	parseArguments(argc, argv, &exePath, &d1vFile);
+	parseArguments(argc, argv, &exePath, &d1vFile, &showGui);
 	paused = false;
 	ctrl = false;
 	guiTimer = 0;
@@ -106,7 +108,7 @@ int main(int argc, char **argv) {
 	printf("Using OpenGL %s, GLSL %s\n", glVersion, glslVersion);
 
 	renderer = new d1vPlayer(mainwindow, exePath);
-	renderer->initGL(d1vFile, width, height);
+	renderer->initGL(d1vFile, width, height, showGui);
 	framecount = 0;
 	framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
 	startTime = SDL_GetTicks();
@@ -118,14 +120,27 @@ int main(int argc, char **argv) {
 	return 0;
 }
 
-void parseArguments(int argc, char **argv, string *exe, string *inputFile) {
+void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui) {
 	*exe = getExecutablePath(argv[0]);
 	bool hasInput = false;
+	*gui = true;
 
 	if (argc >= 3) {
 		if (strcmp(argv[1], "-i") == 0 || strcmp(argv[1], "--input") == 0) {
 			*inputFile = argv[2];
 			hasInput = true;
+		}
+		else if (strcmp(argv[1], "-n") == 0 || strcmp(argv[1], "--no-gui") == 0) {
+			*gui = false;
+		}
+	}
+	if (argc >= 4) {
+		if (strcmp(argv[2], "-i") == 0 || strcmp(argv[2], "--input") == 0) {
+			*inputFile = argv[3];
+			hasInput = true;
+		}
+		else if (strcmp(argv[3], "-n") == 0 || strcmp(argv[3], "--no-gui") == 0) {
+			*gui = false;
 		}
 	}
 	
@@ -283,6 +298,7 @@ void exitFullScreen() {
 }
 
 void resetGuiTimeout() {
+	if (!showGui) return;
 	if (guiTimer != 0) SDL_RemoveTimer(guiTimer);
 	guiTimer = SDL_AddTimer(2500, hideGui, NULL);
 	guiT = 0;
@@ -379,7 +395,7 @@ void SDL_MainLoop() {
 
 		if (draw) {
 			renderer->render();
-			idle();
+			if (showGui) idle();
 		}
     }
 }

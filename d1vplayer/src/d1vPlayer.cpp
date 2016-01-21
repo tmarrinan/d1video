@@ -66,13 +66,14 @@ d1vPlayer::d1vPlayer(SDL_Window *win, string exe) {
 	guiOpacity = 1.0;
 }
 
-void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h) {
+void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h, bool gui) {
 	SDL_GL_SetSwapInterval(1);
 	TTF_Init();
 
 	vidFile = inFile;
 	winW = w;
 	winH = h;
+	showGui = gui;
 
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
@@ -81,11 +82,11 @@ void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h) {
 	glClearColor(0.0, 0.0, 0.0, 1.0);
 
 	initShaders("texture", &shaderProgram);
-	initShaders("color", &guiShaderProgram);
+	if (showGui) initShaders("color", &guiShaderProgram);
 	initBuffers();
 	initTextures();
-	loadFonts();
-	updateFontTexture(videoTime(0));
+	if (showGui) loadFonts();
+	if (showGui) updateFontTexture(videoTime(0));
 }
 
 void d1vPlayer::setVideoViewport() {
@@ -139,7 +140,7 @@ void d1vPlayer::render() {
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
 	// render video player gui
-	if (guiOpacity > 0.0) {
+	if (showGui && guiOpacity > 0.0) {
 		glUseProgram(guiShaderProgram);
 		setGuiViewport();
 		glUniform1f(opacityUniform, guiOpacity);
@@ -565,7 +566,7 @@ void d1vPlayer::updateTextures() {
 	glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, frameW, frameH, 0, frameSize, d1vPixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	updateFontTexture(videoTime((int)((double)currFrame / (double)d1vFps)));
+	if (showGui) updateFontTexture(videoTime((int)((double)currFrame / (double)d1vFps)));
 }
 
 void d1vPlayer::initShaders(string name, GLuint *program) {

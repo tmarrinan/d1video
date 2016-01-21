@@ -124,6 +124,7 @@ private:
 
 	unsigned int winW;
 	unsigned int winH;
+	bool showGui;
 
 	FILE *d1vF;
 	bool eof;
@@ -137,7 +138,7 @@ private:
 
 public:
 	d1vPlayer(SDL_Window *win, std::string exe);
-	void initGL(std::string inFile, unsigned int w, unsigned int h);
+	void initGL(std::string inFile, unsigned int w, unsigned int h, bool gui);
 	void setVideoViewport();
 	void setGuiViewport();
 	void render();

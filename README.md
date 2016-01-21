@@ -42,6 +42,7 @@ DXT1-based Converter and Player for Ultra High Resolution Videos (4K - 16K)
     * `./bin/d1vplayer [options]`
 * Options:
     * `-i, --input <FILE>` dxt1 compressed video to show
+    * `-n, --no-gui` open player without graphic ui
 * Controls:
     * `space`: play/pause
     * `left-arrow`: rewind to beginning
