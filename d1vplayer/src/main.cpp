@@ -30,12 +30,13 @@ unsigned int framerate;         // Playback framerate (milliseconds per frame)
 bool paused;                    // Whether or not video is paused
 bool ctrl;                      // Whether or not user is holding 'ctrl' key ('cmd' for Mac OS X)
 unsigned int startTime;         // Time used for proper animation
-unsigned int startPauseTime;    // Time used for offset when video is paused
 SDL_TimerID animationTimer;     // Animation timer
 SDL_TimerID guiTimer;           // GUI timer
 unsigned int guiT;              // GUI time counter
 bool fadeGui;                   // Whether or not the gui is currently fading out
 bool loop;                      // Whether or not to loop the video
+bool lockTimeKnob;              // Whether or not time slider knob is selected
+bool wasPlaying;                // Whether or not video was playing when slider knob was selected
 guiButton mousePressBtn;        // Gui button that mouse pressed on
 
 void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui);
@@ -48,7 +49,7 @@ void onKeyRelease(SDL_KeyboardEvent &key);
 void onMousePress(SDL_MouseButtonEvent &mouse);
 void onMouseRelease(SDL_MouseButtonEvent &mouse);
 string getExecutablePath(string exe);
-guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y);
+guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data);
 void toggleFullScreen();
 void exitFullScreen();
 void toggleLoop();
@@ -76,6 +77,8 @@ int main(int argc, char **argv) {
 	guiTimer = 0;
 	fadeGui = false;
 	loop = false;
+	lockTimeKnob = false;
+	wasPlaying = true;
 	mousePressBtn = NONE;
 
 	struct stat info;
@@ -251,11 +254,9 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 		case SDL_SCANCODE_SPACE:
 			paused = !paused;
 			renderer->setPaused(paused);
-			if (paused) {
-				startPauseTime = SDL_GetTicks();
-			}
-			else {
-				startTime +=  SDL_GetTicks() - startPauseTime;
+			if (!paused) {
+				framecount = 0;
+				startTime = SDL_GetTicks();
 				renderNextFrame(0, NULL);
 			}
 			break;
@@ -264,7 +265,6 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 			framecount = 0;
 			startTime = SDL_GetTicks();
 			if (paused) {
-				startPauseTime = SDL_GetTicks();
 				renderNextFrame(0, NULL);
 			}
 			break;
@@ -297,22 +297,45 @@ void onKeyRelease(SDL_KeyboardEvent &key) {
 }
 
 void onMousePress(SDL_MouseButtonEvent &mouse) {
-	mousePressBtn = findGuiButtonAtPoint(mouse.x, mouse.y);
+	double extra;
+	mousePressBtn = findGuiButtonAtPoint(mouse.x, mouse.y, &extra);
+
+	if (mousePressBtn == TIME_KNOB) {
+		wasPlaying = !paused;
+		if (!paused) {
+			paused = true;
+		}
+		lockTimeKnob = true;
+	}
 }
 
 void onMouseRelease(SDL_MouseButtonEvent &mouse) {
-	guiButton mouseReleaseBtn = findGuiButtonAtPoint(mouse.x, mouse.y);
+	double extra;
+	guiButton mouseReleaseBtn = findGuiButtonAtPoint(mouse.x, mouse.y, &extra);
+
+	if (lockTimeKnob) {
+		renderer->setVideoTime(extra);
+		if (wasPlaying) {
+			paused = false;
+			framecount = 0;
+			startTime = SDL_GetTicks();
+			nextFrame();
+		}
+		else {
+			renderNextFrame(0, NULL);
+		}
+		lockTimeKnob = false;
+		return;
+	}
 
 	if (mousePressBtn == mouseReleaseBtn) {
 		switch (mouseReleaseBtn) {
 			case PLAY_PAUSE:
 				paused = !paused;
 				renderer->setPaused(paused);
-				if (paused) {
-					startPauseTime = SDL_GetTicks();
-				}
-				else {
-					startTime +=  SDL_GetTicks() - startPauseTime;
+				if (!paused) {
+					framecount = 0;
+					startTime = SDL_GetTicks();
 					renderNextFrame(0, NULL);
 				}
 				break;
@@ -323,7 +346,6 @@ void onMouseRelease(SDL_MouseButtonEvent &mouse) {
 				framecount = 0;
 				startTime = SDL_GetTicks();
 				if (paused) {
-					startPauseTime = SDL_GetTicks();
 					renderNextFrame(0, NULL);
 				}
 				break;
@@ -342,7 +364,7 @@ string getExecutablePath(string exe) {
 	return exe.substr(0, sep+1);
 }
 
-guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y) {
+guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data) {
 	int viewX, viewY, viewW, viewH;
 	if (winW < winH) {
 		viewW = winW;
@@ -359,8 +381,13 @@ guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y) {
 	double scaledX = 2.0 * ((double)(x - viewX) / (double)viewW) - 1.0;
 	double scaledY = 2.0 * ((double)((winH - y) - viewY) / (double)viewH) - 1.0;
 
+	double timep = (scaledX + 0.39) / 0.46;
+	if (timep < 0.0) timep = 0.0;
+	if (timep > 1.0) timep = 1.0;
+	*data = timep;
+
 	if (scaledX >= -0.48 && scaledX <= -0.42 && scaledY >= -0.73 && scaledY <= -0.67) return PLAY_PAUSE;
-	if (scaledX >= -0.38 && scaledX <=  0.08 && scaledY >= -0.72 && scaledY <= -0.68) return TIME_KNOB;
+	if (scaledX >= -0.39 && scaledX <=  0.07 && scaledY >= -0.72 && scaledY <= -0.68) return TIME_KNOB;
 	if (scaledX >=  0.34 && scaledX <=  0.40 && scaledY >= -0.73 && scaledY <= -0.67) return REWIND;
 	if (scaledX >=  0.42 && scaledX <=  0.48 && scaledY >= -0.73 && scaledY <= -0.67) return LOOP;
 
@@ -426,13 +453,20 @@ void SDL_MainLoop() {
 				case SDL_MOUSEMOTION:
 					renderer->setGuiOpacity(1.0);
 					resetGuiTimeout();
+					if (lockTimeKnob) {
+						double extra;
+						guiButton btn = findGuiButtonAtPoint(event.motion.x, event.motion.y, &extra);
+						renderer->setVideoTime(extra);
+					}
 					draw = true;
 					break;
 				case SDL_MOUSEBUTTONDOWN:
 					onMousePress(event.button);
+					draw = true;
 					break;
 				case SDL_MOUSEBUTTONUP:
 					onMouseRelease(event.button);
+					draw = true;
 					break;
 				case SDL_WINDOWEVENT:
 					switch (event.window.event) {

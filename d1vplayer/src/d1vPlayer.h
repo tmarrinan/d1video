@@ -166,6 +166,7 @@ public:
 	void setGuiOpacity(GLfloat opacity);
 	GLfloat getGuiOpacity();
 	void setLooped(bool loop);
+	void setVideoTime(double timep);
 	void rewind();
 	void close();
 };

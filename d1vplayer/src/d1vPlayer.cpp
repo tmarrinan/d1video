@@ -819,6 +819,13 @@ void d1vPlayer::setLooped(bool loop) {
 	glBufferData(GL_ARRAY_BUFFER, 108 * sizeof(GLfloat), loopColors, GL_STATIC_DRAW);
 }
 
+void d1vPlayer::setVideoTime(double timep) {
+	currFrame = (unsigned int)(timep * numFrames);
+
+	fseek(d1vF, 14+(currFrame*frameSize), SEEK_SET);
+	eof = false;
+}
+
 void d1vPlayer::rewind() {
 	fseek(d1vF, 14, SEEK_SET);
 	eof = false;
