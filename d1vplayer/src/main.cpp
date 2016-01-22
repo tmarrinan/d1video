@@ -15,8 +15,12 @@ unsigned int IDLE = 0;
 unsigned int NEXTFRAME = 1;
 unsigned int HIDEGUI = 2;
 
+enum guiButton {NONE, PLAY_PAUSE, TIME_KNOB, REWIND, LOOP};
+
 SDL_Window *mainwindow;         // Window handle
 SDL_GLContext maincontext;      // OpenGL context handle
+unsigned int winW;              // Window Width
+unsigned int winH;              // Window Height
 d1vPlayer *renderer;            // Renderer
 string d1vFile;                 // Input dxt1 video
 string exePath;                 // Executable path
@@ -32,6 +36,7 @@ SDL_TimerID guiTimer;           // GUI timer
 unsigned int guiT;              // GUI time counter
 bool fadeGui;                   // Whether or not the gui is currently fading out
 bool loop;                      // Whether or not to loop the video
+guiButton mousePressBtn;        // Gui button that mouse pressed on
 
 void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui);
 void idle();
@@ -40,7 +45,10 @@ unsigned int renderNextFrame(unsigned int interval, void *param);
 void onResize(unsigned int w, unsigned int h);
 void onKeyPress(SDL_KeyboardEvent &key);
 void onKeyRelease(SDL_KeyboardEvent &key);
+void onMousePress(SDL_MouseButtonEvent &mouse);
+void onMouseRelease(SDL_MouseButtonEvent &mouse);
 string getExecutablePath(string exe);
+guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y);
 void toggleFullScreen();
 void exitFullScreen();
 void toggleLoop();
@@ -68,6 +76,7 @@ int main(int argc, char **argv) {
 	guiTimer = 0;
 	fadeGui = false;
 	loop = false;
+	mousePressBtn = NONE;
 
 	struct stat info;
 	if (stat(d1vFile.c_str(), &info) != 0) {
@@ -98,9 +107,9 @@ int main(int argc, char **argv) {
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
 
 	// Create our window centered at initial resolution
-	int width = 1280;
-	int height = 720;
-	mainwindow = SDL_CreateWindow(PROGRAM_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	winW = 1280;
+	winH = 720;
+	mainwindow = SDL_CreateWindow(PROGRAM_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, winW, winH, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
 	if (!mainwindow)
 		SDL_Die("Unable to create window");
 
@@ -111,7 +120,7 @@ int main(int argc, char **argv) {
 	printf("Using OpenGL %s, GLSL %s\n", glVersion, glslVersion);
 
 	renderer = new d1vPlayer(mainwindow, exePath);
-	renderer->initGL(d1vFile, width, height, showGui);
+	renderer->initGL(d1vFile, winW, winH, showGui);
 	framecount = 0;
 	framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
 	startTime = SDL_GetTicks();
@@ -219,7 +228,9 @@ unsigned int hideGui(unsigned int interval, void *param) {
 }
 
 void onResize(unsigned int w, unsigned int h) {
-	renderer->resize(w, h);
+	winW = w;
+	winH = h;
+	renderer->resize(winW, winH);
 }
 
 
@@ -285,9 +296,75 @@ void onKeyRelease(SDL_KeyboardEvent &key) {
 	}
 }
 
+void onMousePress(SDL_MouseButtonEvent &mouse) {
+	mousePressBtn = findGuiButtonAtPoint(mouse.x, mouse.y);
+}
+
+void onMouseRelease(SDL_MouseButtonEvent &mouse) {
+	guiButton mouseReleaseBtn = findGuiButtonAtPoint(mouse.x, mouse.y);
+
+	if (mousePressBtn == mouseReleaseBtn) {
+		switch (mouseReleaseBtn) {
+			case PLAY_PAUSE:
+				paused = !paused;
+				renderer->setPaused(paused);
+				if (paused) {
+					startPauseTime = SDL_GetTicks();
+				}
+				else {
+					startTime +=  SDL_GetTicks() - startPauseTime;
+					renderNextFrame(0, NULL);
+				}
+				break;
+			case TIME_KNOB:
+				break;
+			case REWIND:
+				renderer->rewind();
+				framecount = 0;
+				startTime = SDL_GetTicks();
+				if (paused) {
+					startPauseTime = SDL_GetTicks();
+					renderNextFrame(0, NULL);
+				}
+				break;
+			case LOOP:
+				toggleLoop();
+				renderer->setLooped(loop);
+				break;
+			default:
+				break;
+		}
+	}
+}
+
 string getExecutablePath(string exe) {
 	int sep = exe.rfind('/');
 	return exe.substr(0, sep+1);
+}
+
+guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y) {
+	int viewX, viewY, viewW, viewH;
+	if (winW < winH) {
+		viewW = winW;
+		viewH = winW;
+		viewX = 0;
+		viewY = (winH - winW) / 2;
+	}
+	else {
+		viewW = winH;
+		viewH = winH;
+		viewX = (winW - winH) / 2;
+		viewY = 0;
+	}
+	double scaledX = 2.0 * ((double)(x - viewX) / (double)viewW) - 1.0;
+	double scaledY = 2.0 * ((double)((winH - y) - viewY) / (double)viewH) - 1.0;
+
+	if (scaledX >= -0.48 && scaledX <= -0.42 && scaledY >= -0.73 && scaledY <= -0.67) return PLAY_PAUSE;
+	if (scaledX >= -0.38 && scaledX <=  0.08 && scaledY >= -0.72 && scaledY <= -0.68) return TIME_KNOB;
+	if (scaledX >=  0.34 && scaledX <=  0.40 && scaledY >= -0.73 && scaledY <= -0.67) return REWIND;
+	if (scaledX >=  0.42 && scaledX <=  0.48 && scaledY >= -0.73 && scaledY <= -0.67) return LOOP;
+
+	return NONE;
 }
 
 void toggleFullScreen() {
@@ -350,6 +427,12 @@ void SDL_MainLoop() {
 					renderer->setGuiOpacity(1.0);
 					resetGuiTimeout();
 					draw = true;
+					break;
+				case SDL_MOUSEBUTTONDOWN:
+					onMousePress(event.button);
+					break;
+				case SDL_MOUSEBUTTONUP:
+					onMouseRelease(event.button);
 					break;
 				case SDL_WINDOWEVENT:
 					switch (event.window.event) {
