@@ -31,6 +31,7 @@ SDL_TimerID animationTimer;     // Animation timer
 SDL_TimerID guiTimer;           // GUI timer
 unsigned int guiT;              // GUI time counter
 bool fadeGui;                   // Whether or not the gui is currently fading out
+bool loop;                      // Whether or not to loop the video
 
 void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui);
 void idle();
@@ -42,6 +43,7 @@ void onKeyRelease(SDL_KeyboardEvent &key);
 string getExecutablePath(string exe);
 void toggleFullScreen();
 void exitFullScreen();
+void toggleLoop();
 void resetGuiTimeout();
 void finishAndQuit();
 void SDL_Die(const char *msg);
@@ -65,6 +67,7 @@ int main(int argc, char **argv) {
 	ctrl = false;
 	guiTimer = 0;
 	fadeGui = false;
+	loop = false;
 
 	struct stat info;
 	if (stat(d1vFile.c_str(), &info) != 0) {
@@ -257,6 +260,9 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 		case SDL_SCANCODE_F:
 			if (ctrl) toggleFullScreen();
 			break;
+		case SDL_SCANCODE_L:
+			toggleLoop();
+			break;
 		default:
 			break;
 	}
@@ -295,6 +301,10 @@ void exitFullScreen() {
     	SDL_SetWindowFullscreen(mainwindow, 0);
     	SDL_ShowCursor(true);
 	}
+}
+
+void toggleLoop() {
+	loop = !loop;
 }
 
 void resetGuiTimeout() {
@@ -358,8 +368,16 @@ void SDL_MainLoop() {
 							nextFrame();
 						}
 						else {
-							paused = true;
-							renderer->setPaused(paused);
+							if (loop) {
+								renderer->rewind();
+								framecount = 0;
+								startTime = SDL_GetTicks();
+								nextFrame();
+							}
+							else {
+								paused = true;
+								renderer->setPaused(paused);
+							}
 						}
 						draw = true;
 					}

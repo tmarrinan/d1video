@@ -173,6 +173,10 @@ void d1vPlayer::render() {
 		glBindVertexArray(rewindVertexArrayObject);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 
+		glUniform2f(translateUniform, 0.0, 0.0);
+		glBindVertexArray(loopVertexArrayObject);
+		glDrawElements(GL_TRIANGLES, 45, GL_UNSIGNED_SHORT, 0);
+
 		glUseProgram(shaderProgram);
 		glUniform1f(texOpacityUniform, guiOpacity);
 
@@ -197,6 +201,8 @@ bool d1vPlayer::hasMoreFrames() {
 }
 
 void d1vPlayer::initBuffers() {
+	int i;
+
 	// video texture
 	glGenVertexArrays(1, &vertexArrayObject);
 	glBindVertexArray(vertexArrayObject);
@@ -245,10 +251,10 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &guiVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, guiVertexPositionBuffer);
 	GLfloat guiVertices[] = {
-		-0.47, -0.75,  // left,  bottom
-		-0.47, -0.65,  // left,  top
-		 0.47, -0.75,  // right, bottom
-		 0.47, -0.65,  // right, top
+		-0.51, -0.75,  // left,  bottom
+		-0.51, -0.65,  // left,  top
+		 0.51, -0.75,  // right, bottom
+		 0.51, -0.65,  // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), guiVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -285,9 +291,9 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &playVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, playVertexPositionBuffer);
 	GLfloat playVertices[] = {
-		-0.44, -0.73,  // left,  bottom
-		-0.44, -0.67,  // left,  top
-		-0.38, -0.70   // right, middle
+		-0.48, -0.73,  // left,  bottom
+		-0.48, -0.67,  // left,  top
+		-0.42, -0.70   // right, middle
 	};
 	glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(GLfloat), playVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -322,14 +328,14 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &pauseVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, pauseVertexPositionBuffer);
 	GLfloat pauseVertices[] = {
-		-0.44, -0.73,  // left  - left,  bottom
-		-0.44, -0.67,  // left  - left,  top
-		-0.42, -0.73,  // left  - right, bottom
-		-0.42, -0.67,  // left  - right, top
-		-0.40, -0.73,  // right - left,  bottom
-		-0.40, -0.67,  // right - left,  top
-		-0.38, -0.73,  // right - right, bottom
-		-0.38, -0.67,  // right - right, top
+		-0.48, -0.73,  // left  - left,  bottom
+		-0.48, -0.67,  // left  - left,  top
+		-0.46, -0.73,  // left  - right, bottom
+		-0.46, -0.67,  // left  - right, top
+		-0.44, -0.73,  // right - left,  bottom
+		-0.44, -0.67,  // right - left,  top
+		-0.42, -0.73,  // right - right, bottom
+		-0.42, -0.67,  // right - right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 16 * sizeof(GLfloat), pauseVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -372,10 +378,10 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &sliderVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, sliderVertexPositionBuffer);
 	GLfloat sliderVertices[] = {
-		-0.350, -0.705,  // left,  bottom
-		-0.350, -0.695,  // left,  top
-		 0.110, -0.705,  // right, bottom
-		 0.110, -0.695   // right, top
+		-0.390, -0.705,  // left,  bottom
+		-0.390, -0.695,  // left,  top
+		 0.070, -0.705,  // right, bottom
+		 0.070, -0.695   // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), sliderVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -412,10 +418,10 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &knobVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, knobVertexPositionBuffer);
 	GLfloat knobVertices[] = {
-		-0.36, -0.72,  // left,  bottom
-		-0.36, -0.68,  // left,  top
-		-0.34, -0.72,  // right, bottom
-		-0.34, -0.68   // right, top
+		-0.40, -0.72,  // left,  bottom
+		-0.40, -0.68,  // left,  top
+		-0.38, -0.72,  // right, bottom
+		-0.38, -0.68   // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), knobVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -452,12 +458,12 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &rewindVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, rewindVertexPositionBuffer);
 	GLfloat rewindVertices[] = {
-		0.38, -0.70,  // left -  left,  middle
-		0.41, -0.67,  // left -  right, bottom
-		0.41, -0.73,  // left -  right, top
-		0.41, -0.70,  // right - left,  middle
-		0.44, -0.67,  // right - right, bottom
-		0.44, -0.73   // right - right, top
+		0.34, -0.70,  // left -  left,  middle
+		0.37, -0.67,  // left -  right, bottom
+		0.37, -0.73,  // left -  right, top
+		0.37, -0.70,  // right - left,  middle
+		0.40, -0.67,  // right - right, bottom
+		0.40, -0.73   // right - right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(GLfloat), rewindVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
@@ -488,6 +494,65 @@ void d1vPlayer::initBuffers() {
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 6 * sizeof(GLushort), rewindVertexIndices, GL_STATIC_DRAW);
 
 
+	// gui - loop
+	glGenVertexArrays(1, &loopVertexArrayObject);
+	glBindVertexArray(loopVertexArrayObject);
+
+	// vertices
+	glGenBuffers(1, &loopVertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, loopVertexPositionBuffer);
+	GLfloat loopVertices[38];
+	double theta;
+	for (i=0; i<32; i+=4) {
+		theta = ((double)(i/4) * (270.0 / 7.0) - 135.0) * (M_PI / 180.0);
+		loopVertices[i+0] = 0.02 * cos(theta) + 0.45; // x - inner
+		loopVertices[i+1] = 0.02 * sin(theta) - 0.70; // y - inner
+		loopVertices[i+2] = 0.03 * cos(theta) + 0.45; // x - outer
+		loopVertices[i+3] = 0.03 * sin(theta) - 0.70; // y - outer
+	}
+	loopVertices[32] = 0.015 * cos(theta) + 0.45;
+	loopVertices[33] = 0.015 * sin(theta) - 0.70;
+	loopVertices[34] = 0.035 * cos(theta) + 0.45;
+	loopVertices[35] = 0.035 * sin(theta) - 0.70;
+	theta = (8.0 * (270.0 / 7.0) - 135.0) * (M_PI / 180.0);
+	loopVertices[36] = 0.025 * cos(theta) + 0.45;
+	loopVertices[37] = 0.025 * sin(theta) - 0.70;
+	glBufferData(GL_ARRAY_BUFFER, 38 * sizeof(GLfloat), loopVertices, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexPositionAttribute);
+	glVertexAttribPointer(guiVertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
+
+	// colors
+	glGenBuffers(1, &loopVertexColorBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, loopVertexColorBuffer);
+	GLfloat loopColors[76];
+	for (i=0; i<76; i+=4) {
+		loopColors[i+0] = 0.77;
+		loopColors[i+1] = 0.96;
+		loopColors[i+2] = 1.00;
+		loopColors[i+3] = 1.00;
+	}
+	glBufferData(GL_ARRAY_BUFFER, 76 * sizeof(GLfloat), loopColors, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(guiVertexColorAttribute);
+	glVertexAttribPointer(guiVertexColorAttribute, 4, GL_FLOAT, false, 0, 0);
+
+	// faces of triangles
+	glGenBuffers(1, &loopVertexIndexBuffer);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, loopVertexIndexBuffer);
+	GLushort loopVertexIndices[45];
+	for (i=0; i<42; i+=6) {
+		loopVertexIndices[i+0] = 2 * (i/6) + 0;
+		loopVertexIndices[i+1] = 2 * (i/6) + 1;
+		loopVertexIndices[i+2] = 2 * (i/6) + 2;
+		loopVertexIndices[i+3] = 2 * (i/6) + 2;
+		loopVertexIndices[i+4] = 2 * (i/6) + 1;
+		loopVertexIndices[i+5] = 2 * (i/6) + 3;
+	}
+	loopVertexIndices[42] = 16;
+	loopVertexIndices[43] = 17;
+	loopVertexIndices[44] = 18;
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 45 * sizeof(GLushort), loopVertexIndices, GL_STATIC_DRAW);
+
+
 	// gui - time text
 	glGenVertexArrays(1, &textVertexArrayObject);
 	glBindVertexArray(textVertexArrayObject);
@@ -496,10 +561,10 @@ void d1vPlayer::initBuffers() {
 	glGenBuffers(1, &textVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, textVertexPositionBuffer);
 	GLfloat textVertices[] = {
-		0.14, -0.72,  // left,  bottom
-		0.14, -0.68,  // left,  top
-		0.347, -0.72,  // right, bottom
-		0.347, -0.68   // right, top
+		0.10, -0.72,  // left,  bottom
+		0.10, -0.68,  // left,  top
+		0.307, -0.72,  // right, bottom
+		0.307, -0.68   // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), textVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(vertexPositionAttribute);

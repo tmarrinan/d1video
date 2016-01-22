@@ -1,5 +1,6 @@
 #ifndef D1VPLAYER_H
 #define D1VPLAYER_H
+#include <cmath>
 #include <string>
 #include <SDL.h>
 #include <SDL_ttf.h>
@@ -100,6 +101,11 @@ private:
 	GLuint rewindVertexPositionBuffer;
 	GLuint rewindVertexColorBuffer;
 	GLuint rewindVertexIndexBuffer;
+
+	GLuint loopVertexArrayObject;
+	GLuint loopVertexPositionBuffer;
+	GLuint loopVertexColorBuffer;
+	GLuint loopVertexIndexBuffer;
 
 	GLuint textVertexArrayObject;
 	GLuint textVertexPositionBuffer;
