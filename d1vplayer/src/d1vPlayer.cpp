@@ -175,7 +175,7 @@ void d1vPlayer::render() {
 
 		glUniform2f(translateUniform, 0.0, 0.0);
 		glBindVertexArray(loopVertexArrayObject);
-		glDrawElements(GL_TRIANGLES, 45, GL_UNSIGNED_SHORT, 0);
+		glDrawElements(GL_TRIANGLES, 69, GL_UNSIGNED_SHORT, 0);
 
 		glUseProgram(shaderProgram);
 		glUniform1f(texOpacityUniform, guiOpacity);
@@ -501,45 +501,45 @@ void d1vPlayer::initBuffers() {
 	// vertices
 	glGenBuffers(1, &loopVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, loopVertexPositionBuffer);
-	GLfloat loopVertices[38];
+	GLfloat loopVertices[54]; 
 	double theta;
-	for (i=0; i<32; i+=4) {
-		theta = ((double)(i/4) * (270.0 / 7.0) - 135.0) * (M_PI / 180.0);
+	for (i=0; i<48; i+=4) {
+		theta = ((double)(i/4) * (270.0 / 11.0) - 135.0) * (M_PI / 180.0);
 		loopVertices[i+0] = 0.02 * cos(theta) + 0.45; // x - inner
 		loopVertices[i+1] = 0.02 * sin(theta) - 0.70; // y - inner
 		loopVertices[i+2] = 0.03 * cos(theta) + 0.45; // x - outer
 		loopVertices[i+3] = 0.03 * sin(theta) - 0.70; // y - outer
 	}
-	loopVertices[32] = 0.015 * cos(theta) + 0.45;
-	loopVertices[33] = 0.015 * sin(theta) - 0.70;
-	loopVertices[34] = 0.035 * cos(theta) + 0.45;
-	loopVertices[35] = 0.035 * sin(theta) - 0.70;
+	loopVertices[48] = 0.013 * cos(theta) + 0.45;
+	loopVertices[49] = 0.013 * sin(theta) - 0.70;
+	loopVertices[50] = 0.037 * cos(theta) + 0.45;
+	loopVertices[51] = 0.037 * sin(theta) - 0.70;
 	theta = (8.0 * (270.0 / 7.0) - 135.0) * (M_PI / 180.0);
-	loopVertices[36] = 0.025 * cos(theta) + 0.45;
-	loopVertices[37] = 0.025 * sin(theta) - 0.70;
-	glBufferData(GL_ARRAY_BUFFER, 38 * sizeof(GLfloat), loopVertices, GL_STATIC_DRAW);
+	loopVertices[52] = 0.029 * cos(theta) + 0.45;
+	loopVertices[53] = 0.029 * sin(theta) - 0.70;
+	glBufferData(GL_ARRAY_BUFFER, 54 * sizeof(GLfloat), loopVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexPositionAttribute);
 	glVertexAttribPointer(guiVertexPositionAttribute, 2, GL_FLOAT, false, 0, 0);
 
 	// colors
 	glGenBuffers(1, &loopVertexColorBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, loopVertexColorBuffer);
-	GLfloat loopColors[76];
-	for (i=0; i<76; i+=4) {
+	GLfloat loopColors[108];
+	for (i=0; i<108; i+=4) {
 		loopColors[i+0] = 0.62;
 		loopColors[i+1] = 0.78;
 		loopColors[i+2] = 0.81;
 		loopColors[i+3] = 1.00;
 	}
-	glBufferData(GL_ARRAY_BUFFER, 76 * sizeof(GLfloat), loopColors, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 108 * sizeof(GLfloat), loopColors, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(guiVertexColorAttribute);
 	glVertexAttribPointer(guiVertexColorAttribute, 4, GL_FLOAT, false, 0, 0);
 
 	// faces of triangles
 	glGenBuffers(1, &loopVertexIndexBuffer);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, loopVertexIndexBuffer);
-	GLushort loopVertexIndices[45];
-	for (i=0; i<42; i+=6) {
+	GLushort loopVertexIndices[69];
+	for (i=0; i<66; i+=6) {
 		loopVertexIndices[i+0] = 2 * (i/6) + 0;
 		loopVertexIndices[i+1] = 2 * (i/6) + 1;
 		loopVertexIndices[i+2] = 2 * (i/6) + 2;
@@ -547,10 +547,10 @@ void d1vPlayer::initBuffers() {
 		loopVertexIndices[i+4] = 2 * (i/6) + 1;
 		loopVertexIndices[i+5] = 2 * (i/6) + 3;
 	}
-	loopVertexIndices[42] = 16;
-	loopVertexIndices[43] = 17;
-	loopVertexIndices[44] = 18;
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 45 * sizeof(GLushort), loopVertexIndices, GL_STATIC_DRAW);
+	loopVertexIndices[66] = 24;
+	loopVertexIndices[67] = 25;
+	loopVertexIndices[68] = 26;
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, 69 * sizeof(GLushort), loopVertexIndices, GL_STATIC_DRAW);
 
 
 	// gui - time text
@@ -798,9 +798,9 @@ GLfloat d1vPlayer::getGuiOpacity() {
 
 void d1vPlayer::setLooped(bool loop) {
 	int i;
-	GLfloat loopColors[76];
+	GLfloat loopColors[108];
 	if (loop) {
-		for (i=0; i<76; i+=4) {
+		for (i=0; i<108; i+=4) {
 			loopColors[i+0] = 0.77;
 			loopColors[i+1] = 0.96;
 			loopColors[i+2] = 1.00;
@@ -808,7 +808,7 @@ void d1vPlayer::setLooped(bool loop) {
 		}
 	}
 	else {
-		for (i=0; i<76; i+=4) {
+		for (i=0; i<108; i+=4) {
 			loopColors[i+0] = 0.62;
 			loopColors[i+1] = 0.78;
 			loopColors[i+2] = 0.81;
@@ -816,7 +816,7 @@ void d1vPlayer::setLooped(bool loop) {
 		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, loopVertexColorBuffer);
-	glBufferData(GL_ARRAY_BUFFER, 76 * sizeof(GLfloat), loopColors, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 108 * sizeof(GLfloat), loopColors, GL_STATIC_DRAW);
 }
 
 void d1vPlayer::rewind() {
