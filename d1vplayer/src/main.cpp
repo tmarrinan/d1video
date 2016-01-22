@@ -262,6 +262,7 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 			break;
 		case SDL_SCANCODE_L:
 			toggleLoop();
+			renderer->setLooped(loop);
 			break;
 		default:
 			break;

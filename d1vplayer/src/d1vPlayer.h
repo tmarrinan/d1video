@@ -165,6 +165,7 @@ public:
 	void setPaused(bool paused);
 	void setGuiOpacity(GLfloat opacity);
 	GLfloat getGuiOpacity();
+	void setLooped(bool loop);
 	void rewind();
 	void close();
 };
