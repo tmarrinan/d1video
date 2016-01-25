@@ -61,7 +61,7 @@ void SDL_MainLoop();
 int main(int argc, char **argv) {
 	if (argc < 3) {
 		printf("\n");
-		printf("  Usage: dxt1player [options]\n");
+		printf("  Usage: d1vplayer [options]\n");
 		printf("\n");
 		printf("  Options:\n");
 		printf("\n");
@@ -97,11 +97,11 @@ int main(int argc, char **argv) {
 		SDL_Die("Unable to initialize SDL");
 
 	// Initialize GL attributes
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+	SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     8);
+	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   8);
+	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    8);
+	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,   8);
+	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,  16);
 	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 
 	// Declare minimum OpenGL version - 3.2

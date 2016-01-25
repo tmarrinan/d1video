@@ -22,7 +22,7 @@ string basename(string path, bool ext = true);
 int main(int argc, char **argv) {
 	if (argc < 3) {
 		printf("\n");
-		printf("  Usage: dxt1converter [options]\n");
+		printf("  Usage: d1vconverter [options]\n");
 		printf("\n");
 		printf("  Options:\n");
 		printf("\n");
