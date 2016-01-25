@@ -112,7 +112,7 @@ int main(int argc, char **argv) {
 	// Create our window centered at initial resolution
 	winW = 1280;
 	winH = 720;
-	mainwindow = SDL_CreateWindow(PROGRAM_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, winW, winH, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE);
+	mainwindow = SDL_CreateWindow(PROGRAM_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, winW, winH, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
 	if (!mainwindow)
 		SDL_Die("Unable to create window");
 
@@ -123,7 +123,7 @@ int main(int argc, char **argv) {
 	printf("Using OpenGL %s, GLSL %s\n", glVersion, glslVersion);
 
 	renderer = new d1vPlayer(mainwindow, exePath);
-	renderer->initGL(d1vFile, winW, winH, showGui);
+	renderer->initGL(d1vFile, showGui);
 	framecount = 0;
 	framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
 	startTime = SDL_GetTicks();
@@ -233,7 +233,7 @@ unsigned int hideGui(unsigned int interval, void *param) {
 void onResize(unsigned int w, unsigned int h) {
 	winW = w;
 	winH = h;
-	renderer->resize(winW, winH);
+	renderer->resize();
 }
 
 

@@ -128,8 +128,8 @@ private:
 	std::string vidFile;
 	double vidAspect;
 
-	unsigned int winW;
-	unsigned int winH;
+	int winW;
+	int winH;
 	bool showGui;
 
 	FILE *d1vF;
@@ -144,11 +144,11 @@ private:
 
 public:
 	d1vPlayer(SDL_Window *win, std::string exe);
-	void initGL(std::string inFile, unsigned int w, unsigned int h, bool gui);
+	void initGL(std::string inFile, bool gui);
 	void setVideoViewport();
 	void setGuiViewport();
 	void render();
-	void resize(unsigned int w, unsigned int h);
+	void resize();
 	bool hasMoreFrames();
 	void initBuffers();
 	void initTextures();

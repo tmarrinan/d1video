@@ -66,13 +66,13 @@ d1vPlayer::d1vPlayer(SDL_Window *win, string exe) {
 	guiOpacity = 1.0;
 }
 
-void d1vPlayer::initGL(string inFile, unsigned int w, unsigned int h, bool gui) {
+void d1vPlayer::initGL(string inFile, bool gui) {
 	SDL_GL_SetSwapInterval(1);
 	TTF_Init();
 
+	SDL_GL_GetDrawableSize(mainwindow, &winW, &winH);
+
 	vidFile = inFile;
-	winW = w;
-	winH = h;
 	showGui = gui;
 
 	glDisable(GL_DEPTH_TEST);
@@ -191,9 +191,8 @@ void d1vPlayer::render() {
 	SDL_GL_SwapWindow(mainwindow);
 }
 
-void d1vPlayer::resize(unsigned int w, unsigned int h) {
-	winW = w;
-	winH = h;
+void d1vPlayer::resize() {
+	SDL_GL_GetDrawableSize(mainwindow, &winW, &winH);
 }
 
 bool d1vPlayer::hasMoreFrames() {
