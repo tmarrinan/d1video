@@ -50,23 +50,24 @@ int main(int argc, char **argv) {
 		printf("cannot find frame images in specified directory\n");
 		return 0;
 	}
+	unsigned int magicNumber = 0x2E443156; //.D1V
 	unsigned int frameCount = findNumberOfFrames(imgDir, fileExt);
-	//string outFile = basename(imgDir, false) + ".d1v";
 
 	unsigned int width;
 	unsigned int height;
 	getImageResolution(imgDir, fileExt, &width, &height);
 	unsigned char *dxt1Buf = (unsigned char*) malloc((width*height) / 2);
-	unsigned char *headerBuf = (unsigned char*) malloc(14);
-	writeUint32(headerBuf,  0, width);
-	writeUint32(headerBuf,  4, height);
-	writeUint32(headerBuf,  8, frameCount);
-	writeUint16(headerBuf, 12, fps);
+	unsigned char *headerBuf = (unsigned char*) malloc(18);
+	writeUint32(headerBuf,  0, magicNumber);
+	writeUint32(headerBuf,  4, width);
+	writeUint32(headerBuf,  8, height);
+	writeUint32(headerBuf, 12, frameCount);
+	writeUint16(headerBuf, 16, fps);
 
 	int i;
 	char frameIdx[7];
 	FILE *wf = fopen(outVid.c_str(), "wb");
-	fwrite(headerBuf, 1, 14, wf);
+	fwrite(headerBuf, 1, 18, wf);
 	for (i=0; i<frameCount; i++) {
 		sprintf(frameIdx, "%06d", i);
 		convertImageToDXT1(imgDir + "frame_" + frameIdx + "." + fileExt, width, height, &dxt1Buf);

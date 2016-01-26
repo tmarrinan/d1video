@@ -755,8 +755,14 @@ string d1vPlayer::readFile(string filename) {
 
 void d1vPlayer::loadDXT1(string filename) {
 	size_t result;
+	unsigned int magic;
 
 	d1vF = fopen(filename.c_str(), "rb");
+	fread(&magic,     4, 1, d1vF);
+	if (magic != 0x2E443156) { //.D1V
+		printf("Error: input file not recognized as D1V video\n");
+		return;
+	}
 	fread(&frameW,    4, 1, d1vF);
 	fread(&frameH,    4, 1, d1vF);
 	fread(&numFrames, 4, 1, d1vF);
@@ -822,14 +828,14 @@ void d1vPlayer::setLooped(bool loop) {
 
 void d1vPlayer::setVideoTime(double timep) {
 	currFrame = (unsigned int)(timep * numFrames);
-	unsigned long offset = 14 + ((unsigned long)currFrame*(unsigned long)frameSize);
+	unsigned long offset = 18 + ((unsigned long)currFrame*(unsigned long)frameSize);
 
 	fseek(d1vF, offset, SEEK_SET);
 	eof = false;
 }
 
 void d1vPlayer::rewind() {
-	fseek(d1vF, 14, SEEK_SET);
+	fseek(d1vF, 18, SEEK_SET);
 	eof = false;
 	currFrame = 0;
 }
