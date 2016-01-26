@@ -820,8 +820,9 @@ void d1vPlayer::setLooped(bool loop) {
 
 void d1vPlayer::setVideoTime(double timep) {
 	currFrame = (unsigned int)(timep * numFrames);
+	unsigned long offset = 14 + ((unsigned long)currFrame*(unsigned long)frameSize);
 
-	fseek(d1vF, 14+(currFrame*frameSize), SEEK_SET);
+	fseek(d1vF, offset, SEEK_SET);
 	eof = false;
 }
 
