@@ -365,6 +365,8 @@ string getExecutablePath(string exe) {
 }
 
 guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data) {
+	if (!showGui) return NONE;
+
 	int viewX, viewY, viewW, viewH;
 	if (winW < winH) {
 		viewW = winW;
