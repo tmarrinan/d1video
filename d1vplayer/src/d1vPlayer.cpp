@@ -815,7 +815,7 @@ void d1vPlayer::setLooped(bool loop) {
 		}
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, loopVertexColorBuffer);
-	glBufferData(GL_ARRAY_BUFFER, 108 * sizeof(GLfloat), loopColors, GL_STATIC_DRAW);
+	glBufferSubData(GL_ARRAY_BUFFER, 0, 108 * sizeof(GLfloat), loopColors);
 }
 
 void d1vPlayer::setVideoTime(double timep) {
