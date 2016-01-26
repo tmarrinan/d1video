@@ -627,7 +627,7 @@ void d1vPlayer::updateTextures() {
 	}
 
 	glBindTexture(GL_TEXTURE_2D, vidTexture);
-	glCompressedTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, frameW, frameH, 0, frameSize, d1vPixels);
+	glCompressedTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, frameW, frameH, GL_COMPRESSED_RGB_S3TC_DXT1_EXT, frameSize, d1vPixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	if (showGui) updateFontTexture(videoTime((int)((double)currFrame / (double)d1vFps)));
