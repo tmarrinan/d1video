@@ -50,7 +50,6 @@ int main(int argc, char **argv) {
 		printf("cannot find frame images in specified directory\n");
 		return 0;
 	}
-	unsigned int magicNumber = 0x2E443156; //.D1V
 	unsigned int frameCount = findNumberOfFrames(imgDir, fileExt);
 
 	unsigned int width;
@@ -58,7 +57,10 @@ int main(int argc, char **argv) {
 	getImageResolution(imgDir, fileExt, &width, &height);
 	unsigned char *dxt1Buf = (unsigned char*) malloc((width*height) / 2);
 	unsigned char *headerBuf = (unsigned char*) malloc(18);
-	writeUint32(headerBuf,  0, magicNumber);
+	headerBuf[0] = 0x2E; // .
+	headerBuf[1] = 0x44; // D
+	headerBuf[2] = 0x31; // 1
+	headerBuf[3] = 0x56; // V
 	writeUint32(headerBuf,  4, width);
 	writeUint32(headerBuf,  8, height);
 	writeUint32(headerBuf, 12, frameCount);

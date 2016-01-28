@@ -170,6 +170,8 @@ public:
 	void setVideoTime(double timep);
 	void rewind();
 	void close();
+	unsigned int toBigEndian(unsigned int val);
+	unsigned int toLittleEndian(unsigned int val);
 };
 
 #endif //D1VPLAYER_H

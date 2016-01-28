@@ -754,19 +754,27 @@ string d1vPlayer::readFile(string filename) {
 }
 
 void d1vPlayer::loadDXT1(string filename) {
-	size_t result;
 	unsigned int magic;
+	unsigned int d_uint32;
+	unsigned short d_uint16;
 
 	d1vF = fopen(filename.c_str(), "rb");
-	fread(&magic,     4, 1, d1vF);
+
+	// check for magic number at beginning of file
+	fread(&d_uint32, 4, 1, d1vF);
+	magic = toBigEndian(d_uint32);
 	if (magic != 0x2E443156) { //.D1V
 		printf("Error: input file not recognized as D1V video\n");
 		return;
 	}
-	fread(&frameW,    4, 1, d1vF);
-	fread(&frameH,    4, 1, d1vF);
-	fread(&numFrames, 4, 1, d1vF);
-	fread(&d1vFps,    2, 1, d1vF);
+	fread(&d_uint32, 4, 1, d1vF);
+	frameW = toLittleEndian(d_uint32);
+	fread(&d_uint32, 4, 1, d1vF);
+	frameH = toLittleEndian(d_uint32);
+	fread(&d_uint32, 4, 1, d1vF);
+	numFrames = toLittleEndian(d_uint32);
+	fread(&d_uint16, 2, 1, d1vF);
+	d1vFps = toLittleEndian(d_uint16);
 
 	duration = (int)((double)numFrames / (double)d1vFps);
 	frameSize = frameW * frameH / 2;
@@ -842,4 +850,28 @@ void d1vPlayer::rewind() {
 
 void d1vPlayer::close() {
 	fclose(d1vF);
+}
+
+unsigned int d1vPlayer::toBigEndian(unsigned int val) {
+	unsigned int test = 0x01000000;
+	unsigned char isBigEndian = *(unsigned char*)&test;
+
+	if (isBigEndian) return val;
+
+	return (val        & 0xFF) << 24
+		| ((val >>  8) & 0xFF) << 16
+		| ((val >> 16) & 0xFF) <<  8
+		| ((val >> 24) & 0xFF);
+}
+
+unsigned int d1vPlayer::toLittleEndian(unsigned int val) {
+	unsigned int test = 0x00000001;
+	unsigned char isLittleEndian = *(unsigned char*)&test;
+
+	if (isLittleEndian) return val;
+
+	return (val        & 0xFF) << 24
+		| ((val >>  8) & 0xFF) << 16
+		| ((val >> 16) & 0xFF) <<  8
+		| ((val >> 24) & 0xFF);
 }
