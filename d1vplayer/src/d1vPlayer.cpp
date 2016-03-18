@@ -3,64 +3,7 @@
 using namespace std;
 
 
-#ifdef _WIN32
-	PFNGLATTACHSHADERPROC            glAttachShader            = (PFNGLATTACHSHADERPROC)            wglGetProcAddress("glAttachShader");
-	PFNGLBINDATTRIBLOCATIONPROC      glBindAttribLocation      = (PFNGLBINDATTRIBLOCATIONPROC)      wglGetProcAddress("glBindAttribLocation");
-	PFNGLBINDBUFFERPROC              glBindBuffer              = (PFNGLBINDBUFFERPROC)              wglGetProcAddress("glBindBuffer");
-	PFNGLBINDFRAGDATALOCATIONPROC    glBindFragDataLocation    = (PFNGLBINDFRAGDATALOCATIONPROC)    wglGetProcAddress("glBindFragDataLocation");
-	PFNGLBINDVERTEXARRAYPROC         glBindVertexArray         = (PFNGLUSEPROGRAMPROC)              wglGetProcAddress("glBindVertexArray");
-	PFNGLBUFFERDATAPROC              glBufferData              = (PFNGLBUFFERDATAPROC)              wglGetProcAddress("glBufferData");
-	PFNGLBUFFERSUBDATAPROC           glBufferSubData           = (PFNGLBUFFERSUBDATAPROC)           wglGetProcAddress("glBufferSubData");
-	PFNGLCOMPILESHADERPROC           glCompileShader           = (PFNGLCOMPILESHADERPROC)           wglGetProcAddress("glCompileShader");
-	PFNGLCREATEPROGRAMPROC           glCreateProgram           = (PFNGLCREATEPROGRAMPROC)           wglGetProcAddress("glCreateProgram");
-	PFNGLCREATESHADERPROC            glCreateShader            = (PFNGLCREATESHADERPROC)            wglGetProcAddress("glCreateShader");
-	PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) wglGetProcAddress("glEnableVertexAttribArray");
-	PFNGLGENBUFFERSPROC              glGenBuffers              = (PFNGLGENBUFFERSPROC)              wglGetProcAddress("glGenBuffers");
-	PFNGLGENVERTEXARRAYSPROC         glGenVertexArrays         = (PFNGLGENVERTEXARRAYSPROC)         wglGetProcAddress("glGenVertexArrays");
-	PFNGLGETATTRIBLOCATIONPROC       glGetAttribLocation       = (PFNGLGETATTRIBLOCATIONPROC)       wglGetProcAddress("glGetAttribLocation");
-	PFNGLGETPROGRAMIVPROC            glGetProgramiv            = (PFNGLGETPROGRAMIVPROC)            wglGetProcAddress("glGetProgramiv");
-	PFNGLGETSHADERINFOLOGPROC        glGetShaderInfoLog        = (PFNGLGETSHADERINFOLOGPROC)        wglGetProcAddress("glGetShaderInfoLog");
-	PFNGLGETSHADERIVPROC             glGetShaderiv             = (PFNGLGETSHADERIVPROC)             wglGetProcAddress("glGetShaderiv");
-	PFNGLGETUNIFORMLOCATIONPROC      glGetUniformLocation      = (PFNGLGETUNIFORMLOCATIONPROC)      wglGetProcAddress("glGetUniformLocation");
-	PFNGLLINKPROGRAMPROC             glLinkProgram             = (PFNGLLINKPROGRAMPROC)             wglGetProcAddress("glLinkProgram");
-	PFNGLSHADERSOURCEPROC            glShaderSource            = (PFNGLSHADERSOURCEPROC)            wglGetProcAddress("glShaderSource");
-	PFNGLUNIFORM1FPROC               glUniform1f               = (PFNGLUNIFORM1FPROC)               wglGetProcAddress("glUniform1f");
-	PFNGLUNIFORM1IPROC               glUniform1i               = (PFNGLUNIFORM1IPROC)               wglGetProcAddress("glUniform1i");
-	PFNGLUNIFORM2FPROC               glUniform2f               = (PFNGLUNIFORM2FPROC)               wglGetProcAddress("glUniform2f");
-	PFNGLUSEPROGRAMPROC              glUseProgram              = (PFNGLUSEPROGRAMPROC)              wglGetProcAddress("glUseProgram");
-	PFNGLVERTEXATTRIBPOINTERPROC     glVertexAttribPointer     = (PFNGLVERTEXATTRIBPOINTERPROC)     wglGetProcAddress("glVertexAttribPointer");
-#elif __linux__
-	PFNGLATTACHSHADERPROC            glAttachShader            = (PFNGLATTACHSHADERPROC)            glXGetProcAddress((const GLubyte*)"glAttachShader");
-	PFNGLBINDATTRIBLOCATIONPROC      glBindAttribLocation      = (PFNGLBINDATTRIBLOCATIONPROC)      glXGetProcAddress((const GLubyte*)"glBindAttribLocation");
-	PFNGLBINDBUFFERPROC              glBindBuffer              = (PFNGLBINDBUFFERPROC)              glXGetProcAddress((const GLubyte*)"glBindBuffer");
-	PFNGLBINDFRAGDATALOCATIONPROC    glBindFragDataLocation    = (PFNGLBINDFRAGDATALOCATIONPROC)    glXGetProcAddress((const GLubyte*)"glBindFragDataLocation");
-	PFNGLBINDVERTEXARRAYPROC         glBindVertexArray         = (PFNGLUSEPROGRAMPROC)              glXGetProcAddress((const GLubyte*)"glBindVertexArray");
-	PFNGLBUFFERDATAPROC              glBufferData              = (PFNGLBUFFERDATAPROC)              glXGetProcAddress((const GLubyte*)"glBufferData");
-	PFNGLBUFFERSUBDATAPROC           glBufferSubData           = (PFNGLBUFFERSUBDATAPROC)           glXGetProcAddress((const GLubyte*)"glBufferSubData");
-	PFNGLCOMPILESHADERPROC           glCompileShader           = (PFNGLCOMPILESHADERPROC)           glXGetProcAddress((const GLubyte*)"glCompileShader");
-	PFNGLCREATEPROGRAMPROC           glCreateProgram           = (PFNGLCREATEPROGRAMPROC)           glXGetProcAddress((const GLubyte*)"glCreateProgram");
-	PFNGLCREATESHADERPROC            glCreateShader            = (PFNGLCREATESHADERPROC)            glXGetProcAddress((const GLubyte*)"glCreateShader");
-	PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray = (PFNGLENABLEVERTEXATTRIBARRAYPROC) glXGetProcAddress((const GLubyte*)"glEnableVertexAttribArray");
-	PFNGLGENBUFFERSPROC              glGenBuffers              = (PFNGLGENBUFFERSPROC)              glXGetProcAddress((const GLubyte*)"glGenBuffers");
-	PFNGLGENVERTEXARRAYSPROC         glGenVertexArrays         = (PFNGLGENVERTEXARRAYSPROC)         glXGetProcAddress((const GLubyte*)"glGenVertexArrays");
-	PFNGLGETATTRIBLOCATIONPROC       glGetAttribLocation       = (PFNGLGETATTRIBLOCATIONPROC)       glXGetProcAddress((const GLubyte*)"glGetAttribLocation");
-	PFNGLGETPROGRAMIVPROC            glGetProgramiv            = (PFNGLGETPROGRAMIVPROC)            glXGetProcAddress((const GLubyte*)"glGetProgramiv");
-	PFNGLGETSHADERINFOLOGPROC        glGetShaderInfoLog        = (PFNGLGETSHADERINFOLOGPROC)        glXGetProcAddress((const GLubyte*)"glGetShaderInfoLog");
-	PFNGLGETSHADERIVPROC             glGetShaderiv             = (PFNGLGETSHADERIVPROC)             glXGetProcAddress((const GLubyte*)"glGetShaderiv");
-	PFNGLGETUNIFORMLOCATIONPROC      glGetUniformLocation      = (PFNGLGETUNIFORMLOCATIONPROC)      glXGetProcAddress((const GLubyte*)"glGetUniformLocation");
-	PFNGLLINKPROGRAMPROC             glLinkProgram             = (PFNGLLINKPROGRAMPROC)             glXGetProcAddress((const GLubyte*)"glLinkProgram");
-	PFNGLSHADERSOURCEPROC            glShaderSource            = (PFNGLSHADERSOURCEPROC)            glXGetProcAddress((const GLubyte*)"glShaderSource");
-	PFNGLUNIFORM1FPROC               glUniform1f               = (PFNGLUNIFORM1FPROC)               glXGetProcAddress((const GLubyte*)"glUniform1f");
-	PFNGLUNIFORM1IPROC               glUniform1i               = (PFNGLUNIFORM1IPROC)               glXGetProcAddress((const GLubyte*)"glUniform1i");
-	PFNGLUNIFORM2FPROC               glUniform2f               = (PFNGLUNIFORM2FPROC)               glXGetProcAddress((const GLubyte*)"glUniform2f");
-	PFNGLUSEPROGRAMPROC              glUseProgram              = (PFNGLUSEPROGRAMPROC)              glXGetProcAddress((const GLubyte*)"glUseProgram");
-	PFNGLVERTEXATTRIBPOINTERPROC     glVertexAttribPointer     = (PFNGLVERTEXATTRIBPOINTERPROC)     glXGetProcAddress((const GLubyte*)"glVertexAttribPointer");
-#endif
-
-
-
-d1vPlayer::d1vPlayer(SDL_Window *win, string exe) {
-	mainwindow = win;
+d1vPlayer::d1vPlayer(string exe) {
 	exePath = exe;
 	currFrame = 0;
 	eof = false;
@@ -69,10 +12,10 @@ d1vPlayer::d1vPlayer(SDL_Window *win, string exe) {
 }
 
 void d1vPlayer::initGL(string inFile, bool gui) {
-	SDL_GL_SetSwapInterval(1);
-	TTF_Init();
+	//TTF_Init();
 
-	SDL_GL_GetDrawableSize(mainwindow, &winW, &winH);
+	winW = glutGet(GLUT_WINDOW_WIDTH);
+	winH = glutGet(GLUT_WINDOW_HEIGHT);
 
 	vidFile = inFile;
 	showGui = gui;
@@ -190,11 +133,12 @@ void d1vPlayer::render() {
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
 	}
 
-	SDL_GL_SwapWindow(mainwindow);
+	glutSwapBuffers();
 }
 
 void d1vPlayer::resize() {
-	SDL_GL_GetDrawableSize(mainwindow, &winW, &winH);
+	winW = glutGet(GLUT_WINDOW_WIDTH);
+	winH = glutGet(GLUT_WINDOW_HEIGHT);
 }
 
 bool d1vPlayer::hasMoreFrames() {
@@ -656,13 +600,11 @@ GLint d1vPlayer::compileShader(string source, GLint type) {
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 	if (status == 0) {
 		GLint length;
-		char *info;
-
 		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
-		info = SDL_stack_alloc(char, length+1);
+		char *info = (char*)malloc(length+1);
 		glGetShaderInfoLog(shader, length, NULL, info);
 		fprintf(stderr, "Failed to compile shader:\n%s\n", info);
-		SDL_stack_free(info);
+		free(info);
 
 		return -1;
 	}
@@ -714,7 +656,7 @@ void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragm
 }
 
 void d1vPlayer::loadFonts() {
-	font = TTF_OpenFont((exePath + "../d1vplayer/fonts/Arial.ttf").c_str(), 72);
+	//font = TTF_OpenFont((exePath + "../d1vplayer/fonts/Arial.ttf").c_str(), 72);
 	
 	glGenTextures(1, &fontTexture);
 	glBindTexture(GL_TEXTURE_2D, fontTexture);
@@ -728,6 +670,7 @@ void d1vPlayer::loadFonts() {
 }
 
 void d1vPlayer::updateFontTexture(string text) {
+	/*
 	glBindTexture(GL_TEXTURE_2D, fontTexture);
 
 	SDL_Color color = {196, 245, 255};
@@ -737,6 +680,7 @@ void d1vPlayer::updateFontTexture(string text) {
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 	SDL_FreeSurface(sFont);
+	*/
 }
 
 string d1vPlayer::readFile(string filename) {

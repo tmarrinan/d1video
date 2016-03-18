@@ -1,5 +1,6 @@
 #ifndef D1VPLAYER_H
 #define D1VPLAYER_H
+#include <cstdlib>
 #include <cmath>
 #include <string>
 #include <sys/stat.h>
@@ -14,8 +15,6 @@
 
 class d1vPlayer {
 private:
-	//SDL_Window *mainwindow;
-
 	GLuint vertexArrayObject;
 	GLuint vertexPositionBuffer;
 	GLuint vertexTextureBuffer;
@@ -76,7 +75,7 @@ private:
 	GLint guiVertexPositionAttribute;
 	GLint guiVertexColorAttribute;
 
-	TTF_Font *font;
+	//TTF_Font *font;
 	GLuint fontTexture;
 
 	int duration;
@@ -103,7 +102,7 @@ private:
 	GLubyte *d1vPixels;
 
 public:
-	d1vPlayer(SDL_Window *win, std::string exe);
+	d1vPlayer(std::string exe);
 	void initGL(std::string inFile, bool gui);
 	void setVideoViewport();
 	void setGuiViewport();

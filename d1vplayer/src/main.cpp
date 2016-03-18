@@ -10,7 +10,7 @@
 	#include <GL/freeglut.h>
 #endif
 
-//#include "d1vPlayer.h"
+#include "d1vPlayer.h"
 
 #define PROGRAM_NAME "D1V Video Player"
 
@@ -25,7 +25,7 @@ enum guiButton {NONE, PLAY_PAUSE, TIME_KNOB, REWIND, LOOP};
 
 unsigned int winW;              // Window Width
 unsigned int winH;              // Window Height
-//d1vPlayer *renderer;            // Renderer
+d1vPlayer *renderer;            // Renderer
 string d1vFile;                 // Input dxt1 video
 string exePath;                 // Executable path
 bool showGui;                   // Whether or not to show the gui
@@ -116,7 +116,7 @@ int main(int argc, char **argv) {
 
 	winW = 1280;
 	winH = 720;
-	glutCreateWindow("OpenGL Intro");
+	glutCreateWindow(PROGRAM_NAME);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutIdleFunc(animate);
@@ -133,10 +133,10 @@ int main(int argc, char **argv) {
 	const unsigned char* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 	printf("Using OpenGL %s, GLSL %s\n", glVersion, glslVersion);
 
-	//renderer = new d1vPlayer(mainwindow, exePath);
-	//renderer->initGL(d1vFile, showGui);
+	renderer = new d1vPlayer(exePath);
+	renderer->initGL(d1vFile, showGui);
 	framecount = 0;
-	//framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
+	framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
 	glGetInteger64v(GL_TIMESTAMP, &startTime);
 	//renderer->render();
 	//nextFrame();
@@ -182,13 +182,13 @@ string getExecutablePath(string exe) {
 }
 
 void display() {
-
+	renderer->render();
 }
 
 void reshape(int w, int h) {
 	winW = w;
 	winH = h;
-	//renderer->resize();
+	renderer->resize();
 }
 
 void animate() {
