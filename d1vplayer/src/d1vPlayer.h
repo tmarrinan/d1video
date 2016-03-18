@@ -2,60 +2,19 @@
 #define D1VPLAYER_H
 #include <cmath>
 #include <string>
-#include <SDL.h>
-#include <SDL_ttf.h>
 #include <sys/stat.h>
 
-#ifdef _WIN32
-	#include <GL/gl.h>
-	#include <GL/glext.h>
-	#include <GL/wgl.h>
-	#include <GL/wglext.h>
-#elif __APPLE__
-	#include <OpenGL/gl3.h>
-	#include <OpenGL/gl3ext.h>
-#else // __linux__
-	#include <GL/gl.h>
-	#include <GL/glext.h>
-	#include <GL/glx.h>
-	#include <GL/glxext.h>
+#include <GL/glew.h>
+#ifdef __APPLE__
+	#include <GLUT/glut.h>
+#else
+	#include <GL/freeglut.h>
 #endif
 
-#ifndef GL3_PROTOTYPES
-#define GL3_PROTOTYPES 1
-#endif
-
-#ifndef __APPLE__
-	extern PFNGLATTACHSHADERPROC            glAttachShader;
-	extern PFNGLBINDATTRIBLOCATIONPROC      glBindAttribLocation;
-	extern PFNGLBINDBUFFERPROC              glBindBuffer;
-	extern PFNGLBINDFRAGDATALOCATIONPROC    glBindFragDataLocation;
-	extern PFNGLBINDVERTEXARRAYPROC         glBindVertexArray;
-	extern PFNGLBUFFERDATAPROC              glBufferData;
-	extern PFNGLBUFFERSUBDATAPROC           glBufferSubData;
-	extern PFNGLCOMPILESHADERPROC           glCompileShader;
-	extern PFNGLCREATEPROGRAMPROC           glCreateProgram;
-	extern PFNGLCREATESHADERPROC            glCreateShader;
-	extern PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
-	extern PFNGLGENBUFFERSPROC              glGenBuffers;
-	extern PFNGLGENVERTEXARRAYSPROC         glGenVertexArrays;
-	extern PFNGLGETATTRIBLOCATIONPROC       glGetAttribLocation;
-	extern PFNGLGETPROGRAMIVPROC            glGetProgramiv;
-	extern PFNGLGETSHADERINFOLOGPROC        glGetShaderInfoLog;
-	extern PFNGLGETSHADERIVPROC             glGetShaderiv;
-	extern PFNGLGETUNIFORMLOCATIONPROC      glGetUniformLocation;
-	extern PFNGLLINKPROGRAMPROC             glLinkProgram;
-	extern PFNGLSHADERSOURCEPROC            glShaderSource;
-	extern PFNGLUNIFORM1FPROC               glUniform1f;
-	extern PFNGLUNIFORM1IPROC               glUniform1i;
-	extern PFNGLUNIFORM2FPROC               glUniform2f;
-	extern PFNGLUSEPROGRAMPROC              glUseProgram;
-	extern PFNGLVERTEXATTRIBPOINTERPROC     glVertexAttribPointer;
-#endif
 
 class d1vPlayer {
 private:
-	SDL_Window *mainwindow;
+	//SDL_Window *mainwindow;
 
 	GLuint vertexArrayObject;
 	GLuint vertexPositionBuffer;

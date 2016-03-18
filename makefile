@@ -2,17 +2,13 @@
 MACHINE= $(shell uname -s)
 
 ifeq ($(MACHINE),Darwin)
-	OPENGL_INC= -FOpenGL
-	OPENGL_LIB= -framework OpenGL
-	SDL_INC= `sdl2-config --cflags`
-	SDL_LIB= `sdl2-config --libs` -lSDL2_ttf
+	OPENGL_INC= -I/usr/local/include
+	OPENGL_LIB= -L/usr/local/lib -lGLEW -framework OpenGL -framework GLUT
 	IMG_INC= -I/usr/local/include
 	IMG_LIB= -L/usr/local/lib -lpng -ljpeg
 else
 	OPENGL_INC= -I/usr/X11R6/include
-	OPENGL_LIB= -L/usr/lib64 -lGL -lGLU
-	SDL_INC= `sdl2-config --cflags` -I/usr/local/include/SDL2
-	SDL_LIB= `sdl2-config --libs` -L/usr/local/lib -lSDL2_ttf
+	OPENGL_LIB= -L/usr/lib64 -lGL -lGLU -lglut
 	IMG_INC= -I/usr/include
 	IMG_LIB= -L/usr/lib64 -lpng -ljpeg
 endif
@@ -27,8 +23,8 @@ LIBS_C= $(IMG_LIB)
 
 OBJDIR_P= d1vplayer/objs
 OBJS_P= $(addprefix $(OBJDIR_P)/, main.o d1vPlayer.o)
-INCLUDE_P= $(SDL_INC) $(OPENGL_INC) 
-LIBS_P= $(SDL_LIB) $(OPENGL_LIB)
+INCLUDE_P= $(OPENGL_INC) 
+LIBS_P= $(OPENGL_LIB)
 
 CXX= g++
 COMPILER_FLAGS= -g
@@ -61,10 +57,10 @@ $(OBJDIR_C):
 
 
 $(EXEC_P): $(OBJS_P)
-	$(CXX) $(COMPILER_FLAGS) -o $(EXEC_P) $(OBJS_P) $(LIBS_P)
+	$(CXX) $(COMPILER_FLAGS) -w -o $(EXEC_P) $(OBJS_P) $(LIBS_P)
 
 $(OBJDIR_P)/%.o: d1vplayer/src/%.cpp
-	$(CXX) -c $(COMPILER_FLAGS) -o $@ $< $(INCLUDE_P)
+	$(CXX) -c $(COMPILER_FLAGS) -w -o $@ $< $(INCLUDE_P)
 
 $(OBJS_P): | $(OBJDIR_P)
 

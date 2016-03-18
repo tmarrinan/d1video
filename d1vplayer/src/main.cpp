@@ -2,9 +2,15 @@
 #include <cstdlib>
 #include <string>
 #include <sys/stat.h>
-#include <SDL.h>
 
-#include "d1vPlayer.h"
+#include <GL/glew.h>
+#ifdef __APPLE__
+	#include <GLUT/glut.h>
+#else
+	#include <GL/freeglut.h>
+#endif
+
+//#include "d1vPlayer.h"
 
 #define PROGRAM_NAME "D1V Video Player"
 
@@ -17,11 +23,9 @@ unsigned int HIDEGUI = 2;
 
 enum guiButton {NONE, PLAY_PAUSE, TIME_KNOB, REWIND, LOOP};
 
-SDL_Window *mainwindow;         // Window handle
-SDL_GLContext maincontext;      // OpenGL context handle
 unsigned int winW;              // Window Width
 unsigned int winH;              // Window Height
-d1vPlayer *renderer;            // Renderer
+//d1vPlayer *renderer;            // Renderer
 string d1vFile;                 // Input dxt1 video
 string exePath;                 // Executable path
 bool showGui;                   // Whether or not to show the gui
@@ -29,10 +33,10 @@ unsigned int framecount;        // Current frame being rendered
 unsigned int framerate;         // Playback framerate (milliseconds per frame)
 bool paused;                    // Whether or not video is paused
 bool ctrl;                      // Whether or not user is holding 'ctrl' key ('cmd' for Mac OS X)
-unsigned int startTime;         // Time used for proper animation
-SDL_TimerID animationTimer;     // Animation timer
-SDL_TimerID guiTimer;           // GUI timer
-unsigned int guiT;              // GUI time counter
+long long int startTime;        // Time used for proper animation
+//SDL_TimerID animationTimer;     // Animation timer
+//SDL_TimerID guiTimer;           // GUI timer
+long long int guiT;              // GUI time counter
 bool fadeGui;                   // Whether or not the gui is currently fading out
 bool loop;                      // Whether or not to loop the video
 bool lockTimeKnob;              // Whether or not time slider knob is selected
@@ -40,7 +44,11 @@ bool wasPlaying;                // Whether or not video was playing when slider 
 guiButton mousePressBtn;        // Gui button that mouse pressed on
 
 void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui);
-void idle();
+string getExecutablePath(string exe);
+void display();
+void reshape(int w, int h);
+void animate();
+/*void idle();
 void nextFrame();
 unsigned int renderNextFrame(unsigned int interval, void *param);
 void onResize(unsigned int w, unsigned int h);
@@ -48,7 +56,6 @@ void onKeyPress(SDL_KeyboardEvent &key);
 void onKeyRelease(SDL_KeyboardEvent &key);
 void onMousePress(SDL_MouseButtonEvent &mouse);
 void onMouseRelease(SDL_MouseButtonEvent &mouse);
-string getExecutablePath(string exe);
 guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data);
 void toggleFullScreen();
 void exitFullScreen();
@@ -56,9 +63,10 @@ void toggleLoop();
 void resetGuiTimeout();
 void finishAndQuit();
 void SDL_Die(const char *msg);
-void SDL_MainLoop();
+void SDL_MainLoop();*/
 
 int main(int argc, char **argv) {
+	// Initialize main program
 	if (argc < 3) {
 		printf("\n");
 		printf("  Usage: d1vplayer [options]\n");
@@ -74,7 +82,7 @@ int main(int argc, char **argv) {
 	parseArguments(argc, argv, &exePath, &d1vFile, &showGui);
 	paused = false;
 	ctrl = false;
-	guiTimer = 0;
+	//guiTimer = 0;
 	fadeGui = false;
 	loop = false;
 	lockTimeKnob = false;
@@ -91,46 +99,49 @@ int main(int argc, char **argv) {
 		return 0;
 	}
 
+	// Initialize GLUT
+	glutInit(&argc, argv);
 
-	// Initialize SDL's video subsystem (or die on error)
-	if (SDL_Init(SDL_INIT_VIDEO) < 0)
-		SDL_Die("Unable to initialize SDL");
+#ifdef __APPLE__
+	glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+#else
+	glutInitContextVersion(3, 2);
+	glutInitContextFlags(GLUT_FORWARD_COMPATIBLE);
+	glutInitContextProfile(GLUT_CORE_PROFILE);
 
-	// Initialize GL attributes
-	SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     8);
-	SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   8);
-	SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    8);
-	SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE,   8);
-	SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE,  16);
-	SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+	glutSetOption(GLUT_ACTION_ON_WINDOW_CLOSE, GLUT_ACTION_GLUTMAINLOOP_RETURNS);
 
-	// Declare minimum OpenGL version - 3.2
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE); 
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3); 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+#endif
 
-	// Create our window centered at initial resolution
 	winW = 1280;
 	winH = 720;
-	mainwindow = SDL_CreateWindow(PROGRAM_NAME, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, winW, winH, SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-	if (!mainwindow)
-		SDL_Die("Unable to create window");
+	glutCreateWindow("OpenGL Intro");
+	glutDisplayFunc(display);
+	glutReshapeFunc(reshape);
+	glutIdleFunc(animate);
+	glutReshapeWindow(winW, winH);
 
-	maincontext = SDL_GL_CreateContext(mainwindow);
+	glewExperimental = GL_TRUE;
+	int GlewInitResult = glewInit();
+	int glewErr = glGetError();
+	if (GlewInitResult != GLEW_OK) {
+		printf("ERROR: %s\n", glewGetErrorString(GlewInitResult));
+	}
 
 	const unsigned char* glVersion = glGetString(GL_VERSION);
 	const unsigned char* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 	printf("Using OpenGL %s, GLSL %s\n", glVersion, glslVersion);
 
-	renderer = new d1vPlayer(mainwindow, exePath);
-	renderer->initGL(d1vFile, showGui);
+	//renderer = new d1vPlayer(mainwindow, exePath);
+	//renderer->initGL(d1vFile, showGui);
 	framecount = 0;
-	framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
-	startTime = SDL_GetTicks();
-	renderer->render();
-	nextFrame();
+	//framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
+	glGetInteger64v(GL_TIMESTAMP, &startTime);
+	//renderer->render();
+	//nextFrame();
 
-	SDL_MainLoop();
+	glutMainLoop();
 
 	return 0;
 }
@@ -161,11 +172,29 @@ void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool 
 	
 	if (!hasInput) {
 		printf("please specify an input image file\n");
-		SDL_Quit();
 		exit(0);
 	}
 }
 
+string getExecutablePath(string exe) {
+	int sep = exe.rfind('/');
+	return exe.substr(0, sep+1);
+}
+
+void display() {
+
+}
+
+void reshape(int w, int h) {
+	winW = w;
+	winH = h;
+	//renderer->resize();
+}
+
+void animate() {
+
+}
+/*
 void idle() {
 	SDL_Event event;
 	SDL_UserEvent userevent;
@@ -185,7 +214,8 @@ void nextFrame() {
 	framecount++;
 	if (paused) return;
 
-	unsigned int now = SDL_GetTicks();
+	long long int now;
+	glGetInteger64v(GL_TIMESTAMP, &now);
 	unsigned int t = now - startTime;
 
 	if (t >= framerate * framecount) {
@@ -256,14 +286,14 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 			renderer->setPaused(paused);
 			if (!paused) {
 				framecount = 0;
-				startTime = SDL_GetTicks();
+				glGetInteger64v(GL_TIMESTAMP, &startTime);
 				renderNextFrame(0, NULL);
 			}
 			break;
 		case SDL_SCANCODE_LEFT:
 			renderer->rewind();
 			framecount = 0;
-			startTime = SDL_GetTicks();
+			glGetInteger64v(GL_TIMESTAMP, &startTime);
 			if (paused) {
 				renderNextFrame(0, NULL);
 			}
@@ -318,7 +348,7 @@ void onMouseRelease(SDL_MouseButtonEvent &mouse) {
 		if (wasPlaying) {
 			paused = false;
 			framecount = 0;
-			startTime = SDL_GetTicks();
+			glGetInteger64v(GL_TIMESTAMP, &startTime);
 			nextFrame();
 		}
 		else {
@@ -335,7 +365,7 @@ void onMouseRelease(SDL_MouseButtonEvent &mouse) {
 				renderer->setPaused(paused);
 				if (!paused) {
 					framecount = 0;
-					startTime = SDL_GetTicks();
+					glGetInteger64v(GL_TIMESTAMP, &startTime);
 					renderNextFrame(0, NULL);
 				}
 				break;
@@ -344,7 +374,7 @@ void onMouseRelease(SDL_MouseButtonEvent &mouse) {
 			case REWIND:
 				renderer->rewind();
 				framecount = 0;
-				startTime = SDL_GetTicks();
+				glGetInteger64v(GL_TIMESTAMP, &startTime);
 				if (paused) {
 					renderNextFrame(0, NULL);
 				}
@@ -357,11 +387,6 @@ void onMouseRelease(SDL_MouseButtonEvent &mouse) {
 				break;
 		}
 	}
-}
-
-string getExecutablePath(string exe) {
-	int sep = exe.rfind('/');
-	return exe.substr(0, sep+1);
 }
 
 guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data) {
@@ -491,7 +516,7 @@ void SDL_MainLoop() {
 							if (loop) {
 								renderer->rewind();
 								framecount = 0;
-								startTime = SDL_GetTicks();
+								glGetInteger64v(GL_TIMESTAMP, &startTime);
 								nextFrame();
 							}
 							else {
@@ -502,13 +527,16 @@ void SDL_MainLoop() {
 						draw = true;
 					}
 					else if (*(unsigned int*)event.user.data1 == HIDEGUI) {
-						guiT = SDL_GetTicks() + 501;
+						glGetInteger64v(GL_TIMESTAMP, &guiT);
+						guiT += 501;
 						fadeGui = true;
 						draw = true;
 					}
 					else if (*(unsigned int*)event.user.data1 == IDLE) {
 						if (fadeGui) {
-							unsigned int t = SDL_GetTicks() + 501 - guiT;
+							long long int t;
+							glGetInteger64v(GL_TIMESTAMP, &t);
+							t += (501 - guiT);
 							if (t < 500) {
 								renderer->setGuiOpacity(1.0 - ((float)t/500.0));
 							}
@@ -537,3 +565,4 @@ void SDL_MainLoop() {
 		}
     }
 }
+*/
