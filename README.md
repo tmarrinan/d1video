@@ -8,15 +8,15 @@ DXT1-based Converter and Player for Ultra High Resolution Videos (4K - 16K)
 
 ## Installation##
 
-### Mac OS X ###
-
 #### Dependencies: ####
 
-* SDL2
-* SDL2_ttf
-* OpenGL
+* MS Visual Studio (2013 or higher)
+* FreeGLUT (Windows / Linux) / GLUT (Mac OS X - built in)
+* FreeType
 * libjpeg
 * libpng
+
+### Linux / Mac OS X ###
 
 #### Build ####
 
@@ -24,7 +24,11 @@ DXT1-based Converter and Player for Ultra High Resolution Videos (4K - 16K)
     * `cd <d1video_directory>`
     * `make`
 
-#### Run ####
+### Windows ###
+
+* Open MS Visual Studio
+
+## Run ##
 
 ##### D1V Converter (convert a stack of frames to d1v video) #####
 
