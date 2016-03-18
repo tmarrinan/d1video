@@ -10,7 +10,7 @@ DXT1-based Converter and Player for Ultra High Resolution Videos (4K - 16K)
 
 #### Dependencies: ####
 
-* MS Visual Studio (2013 or higher)
+* MS Visual Studio 2013 or higher (Windows)
 * FreeGLUT (Windows / Linux) / GLUT (Mac OS X - built in)
 * FreeType
 * libjpeg
