@@ -33,10 +33,10 @@ unsigned int framecount;        // Current frame being rendered
 unsigned int framerate;         // Playback framerate (milliseconds per frame)
 bool paused;                    // Whether or not video is paused
 bool ctrl;                      // Whether or not user is holding 'ctrl' key ('cmd' for Mac OS X)
-long long int startTime;        // Time used for proper animation
+unsigned int startTime;         // Time used for proper animation
 //SDL_TimerID animationTimer;     // Animation timer
 //SDL_TimerID guiTimer;           // GUI timer
-long long int guiT;              // GUI time counter
+unsigned int guiT;              // GUI time counter
 bool fadeGui;                   // Whether or not the gui is currently fading out
 bool loop;                      // Whether or not to loop the video
 bool lockTimeKnob;              // Whether or not time slider knob is selected
@@ -48,9 +48,9 @@ string getExecutablePath(string exe);
 void display();
 void reshape(int w, int h);
 void animate();
-/*void idle();
 void nextFrame();
-unsigned int renderNextFrame(unsigned int interval, void *param);
+void renderNextFrame(int param);
+/*void idle();
 void onResize(unsigned int w, unsigned int h);
 void onKeyPress(SDL_KeyboardEvent &key);
 void onKeyRelease(SDL_KeyboardEvent &key);
@@ -137,9 +137,7 @@ int main(int argc, char **argv) {
 	renderer->initGL(d1vFile, showGui);
 	framecount = 0;
 	framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
-	glGetInteger64v(GL_TIMESTAMP, &startTime);
-	//renderer->render();
-	//nextFrame();
+	startTime = glutGet(GLUT_ELAPSED_TIME);
 
 	glutMainLoop();
 
@@ -183,6 +181,7 @@ string getExecutablePath(string exe) {
 
 void display() {
 	renderer->render();
+	nextFrame();
 }
 
 void reshape(int w, int h) {
@@ -194,6 +193,44 @@ void reshape(int w, int h) {
 void animate() {
 
 }
+
+void nextFrame() {
+	framecount++;
+	if (paused) return;
+
+	unsigned int now;
+	now = glutGet(GLUT_ELAPSED_TIME);
+	unsigned int t = now - startTime;
+
+	if (t >= framerate * framecount) {
+		printf("render next frame now\n");
+		renderNextFrame(0);
+	}
+	else {
+		printf("render next frame in %d ms, t: %d\n", (framerate * framecount) - t, t);
+		glutTimerFunc((framerate * framecount) - t, renderNextFrame, 0);
+	}
+}
+
+void renderNextFrame(int param) {
+	if (renderer->hasMoreFrames()) {
+		renderer->updateTextures();
+	}
+	else {
+		if (loop) {
+			renderer->rewind();
+			framecount = 0;
+			startTime = glutGet(GLUT_ELAPSED_TIME);
+		}
+		else {
+			paused = true;
+			renderer->setPaused(paused);
+		}
+	}
+
+	glutPostRedisplay();
+}
+
 /*
 void idle() {
 	SDL_Event event;
@@ -208,39 +245,6 @@ void idle() {
 	event.user = userevent;
 
 	SDL_PushEvent(&event);
-}
-
-void nextFrame() {
-	framecount++;
-	if (paused) return;
-
-	long long int now;
-	glGetInteger64v(GL_TIMESTAMP, &now);
-	unsigned int t = now - startTime;
-
-	if (t >= framerate * framecount) {
-		renderNextFrame(0, NULL);
-	}
-	else {
-		animationTimer = SDL_AddTimer((framerate * framecount) - t, renderNextFrame, NULL);
-	}
-}
-
-unsigned int renderNextFrame(unsigned int interval, void *param) {
-	SDL_Event event;
-	SDL_UserEvent userevent;
-
-	userevent.type = SDL_USEREVENT;
-	userevent.code = 0;
-	userevent.data1 = &NEXTFRAME;
-	userevent.data2 = NULL;
-
-	event.type = SDL_USEREVENT;
-	event.user = userevent;
-
-	SDL_PushEvent(&event);
-
-	return 0;
 }
 
 unsigned int hideGui(unsigned int interval, void *param) {
@@ -287,6 +291,7 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 			if (!paused) {
 				framecount = 0;
 				glGetInteger64v(GL_TIMESTAMP, &startTime);
+				startTime /= 1000000;
 				renderNextFrame(0, NULL);
 			}
 			break;
@@ -294,6 +299,7 @@ void onKeyPress(SDL_KeyboardEvent &key) {
 			renderer->rewind();
 			framecount = 0;
 			glGetInteger64v(GL_TIMESTAMP, &startTime);
+			startTime /= 1000000;
 			if (paused) {
 				renderNextFrame(0, NULL);
 			}
@@ -349,6 +355,7 @@ void onMouseRelease(SDL_MouseButtonEvent &mouse) {
 			paused = false;
 			framecount = 0;
 			glGetInteger64v(GL_TIMESTAMP, &startTime);
+			startTime /= 1000000;
 			nextFrame();
 		}
 		else {
@@ -366,6 +373,7 @@ void onMouseRelease(SDL_MouseButtonEvent &mouse) {
 				if (!paused) {
 					framecount = 0;
 					glGetInteger64v(GL_TIMESTAMP, &startTime);
+					startTime /= 1000000;
 					renderNextFrame(0, NULL);
 				}
 				break;
@@ -375,6 +383,7 @@ void onMouseRelease(SDL_MouseButtonEvent &mouse) {
 				renderer->rewind();
 				framecount = 0;
 				glGetInteger64v(GL_TIMESTAMP, &startTime);
+				startTime /= 1000000;
 				if (paused) {
 					renderNextFrame(0, NULL);
 				}
@@ -517,6 +526,7 @@ void SDL_MainLoop() {
 								renderer->rewind();
 								framecount = 0;
 								glGetInteger64v(GL_TIMESTAMP, &startTime);
+								startTime /= 1000000;
 								nextFrame();
 							}
 							else {
@@ -528,6 +538,7 @@ void SDL_MainLoop() {
 					}
 					else if (*(unsigned int*)event.user.data1 == HIDEGUI) {
 						glGetInteger64v(GL_TIMESTAMP, &guiT);
+						guiT /= 1000000;
 						guiT += 501;
 						fadeGui = true;
 						draw = true;
@@ -536,6 +547,7 @@ void SDL_MainLoop() {
 						if (fadeGui) {
 							long long int t;
 							glGetInteger64v(GL_TIMESTAMP, &t);
+							t /= 1000000;
 							t += (501 - guiT);
 							if (t < 500) {
 								renderer->setGuiOpacity(1.0 - ((float)t/500.0));
