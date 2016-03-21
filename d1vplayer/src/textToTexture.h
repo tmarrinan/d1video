@@ -22,6 +22,7 @@ private:
 public:
 	textToTexture();
 	void openFont(std::string fontname, unsigned int size, FT_Face *face);
+	void setFontSize(FT_Face face, unsigned int size);
 	void renderText(FT_Face face, std::string text, unsigned char color[3], unsigned int *width, unsigned int *height, unsigned char **pixels);
 };
 

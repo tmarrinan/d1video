@@ -25,6 +25,10 @@ enum guiButton {NONE, PLAY_PAUSE, TIME_KNOB, REWIND, LOOP};
 
 unsigned int winW;              // Window Width
 unsigned int winH;              // Window Height
+unsigned int prevWinW;          // Previous Window Width
+unsigned int prevWinH;          // Previous Window Height
+unsigned int prevWinX;          // Previous Window Position X
+unsigned int prevWinY;          // Previous Window Position Y
 d1vPlayer *renderer;            // Renderer
 string d1vFile;                 // Input dxt1 video
 string exePath;                 // Executable path
@@ -32,24 +36,38 @@ bool showGui;                   // Whether or not to show the gui
 unsigned int framecount;        // Current frame being rendered
 unsigned int framerate;         // Playback framerate (milliseconds per frame)
 bool paused;                    // Whether or not video is paused
-bool ctrl;                      // Whether or not user is holding 'ctrl' key ('cmd' for Mac OS X)
 unsigned int startTime;         // Time used for proper animation
+unsigned int guiTimer;          // GUI timer
 //SDL_TimerID animationTimer;     // Animation timer
 //SDL_TimerID guiTimer;           // GUI timer
 unsigned int guiT;              // GUI time counter
+bool fullscreen;                // Whether or not application is fullscreen
 bool fadeGui;                   // Whether or not the gui is currently fading out
 bool loop;                      // Whether or not to loop the video
 bool lockTimeKnob;              // Whether or not time slider knob is selected
 bool wasPlaying;                // Whether or not video was playing when slider knob was selected
+bool advanceVideo;              // Whether or not to grab next frame;
 guiButton mousePressBtn;        // Gui button that mouse pressed on
 
 void parseArguments(int argc, char **argv, string *exe, string *inputFile, bool *gui);
 string getExecutablePath(string exe);
 void display();
 void reshape(int w, int h);
-void animate();
+void idle();
+void keypress(unsigned char key, int x, int y);
+void specialkeypress(int key, int x, int y);
+void mousepressrelease(int button, int state, int x, int y);
+void mousemove(int x, int y);
 void nextFrame();
 void renderNextFrame(int param);
+void toggleFullScreen();
+void exitFullScreen();
+void toggleLoop();
+void resetGuiTimeout();
+void hideGui(int param);
+guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data);
+
+
 /*void idle();
 void onResize(unsigned int w, unsigned int h);
 void onKeyPress(SDL_KeyboardEvent &key);
@@ -80,13 +98,14 @@ int main(int argc, char **argv) {
 	}
 
 	parseArguments(argc, argv, &exePath, &d1vFile, &showGui);
+	fullscreen = false;
 	paused = false;
-	ctrl = false;
 	//guiTimer = 0;
 	fadeGui = false;
 	loop = false;
 	lockTimeKnob = false;
 	wasPlaying = true;
+	advanceVideo = true;
 	mousePressBtn = NONE;
 
 	struct stat info;
@@ -119,7 +138,12 @@ int main(int argc, char **argv) {
 	glutCreateWindow(PROGRAM_NAME);
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
-	glutIdleFunc(animate);
+	glutIdleFunc(idle);
+	glutKeyboardFunc(keypress);
+	glutSpecialFunc(specialkeypress);
+	glutMouseFunc(mousepressrelease);
+	glutMotionFunc(mousemove);
+	glutPassiveMotionFunc(mousemove);
 	glutReshapeWindow(winW, winH);
 
 	glewExperimental = GL_TRUE;
@@ -138,6 +162,7 @@ int main(int argc, char **argv) {
 	framecount = 0;
 	framerate = (unsigned int)(1000.0 / (double)renderer->getPlaybackFps());
 	startTime = glutGet(GLUT_ELAPSED_TIME);
+	resetGuiTimeout();
 
 	glutMainLoop();
 
@@ -181,7 +206,9 @@ string getExecutablePath(string exe) {
 
 void display() {
 	renderer->render();
-	nextFrame();
+
+	if (advanceVideo)
+		nextFrame();
 }
 
 void reshape(int w, int h) {
@@ -190,8 +217,139 @@ void reshape(int w, int h) {
 	renderer->resize();
 }
 
-void animate() {
+void idle() {
+	if (fadeGui) {
+		unsigned int t = glutGet(GLUT_ELAPSED_TIME) + 501 - guiT;
+		if (t < 500) {
+			renderer->setGuiOpacity(1.0 - ((float)t/500.0));
+		}
+		else {
+			renderer->setGuiOpacity(0.0);
+			fadeGui = false;
+		}
 
+		glutPostRedisplay();
+	}
+}
+
+void keypress(unsigned char key, int x, int y) {
+	switch (key) {
+		case 27: // esc key
+			exitFullScreen();
+			break;
+		case ' ':
+			paused = !paused;
+			renderer->setPaused(paused);
+			if (!paused) {
+				framecount = 0;
+				startTime = glutGet(GLUT_ELAPSED_TIME);
+				renderNextFrame(0);
+			}
+			break;
+		case 'F':
+			toggleFullScreen();
+			break;
+		case 'l':
+			toggleLoop();
+			renderer->setLooped(loop);
+			break;
+		default:
+			break;
+	}
+}
+
+void specialkeypress(int key, int x, int y) {
+	switch (key) {
+		case GLUT_KEY_LEFT:
+			renderer->rewind();
+			framecount = 0;
+			startTime = glutGet(GLUT_ELAPSED_TIME);
+			if (paused)
+				renderNextFrame(0);
+			break;
+		default:
+			break;
+	}
+}
+
+void mousepressrelease(int button, int state, int x, int y) {
+	if (button == GLUT_LEFT_BUTTON) {
+		if (state == GLUT_DOWN){ // left click press
+			double extra;
+			mousePressBtn = findGuiButtonAtPoint(x, y, &extra);
+
+			if (mousePressBtn == TIME_KNOB) {
+				wasPlaying = !paused;
+				if (!paused) {
+					paused = true;
+				}
+				lockTimeKnob = true;
+			}
+		}
+		else { // left click release
+			double extra;
+			guiButton mouseReleaseBtn = findGuiButtonAtPoint(x, y, &extra);
+
+			if (lockTimeKnob) {
+				renderer->setVideoTime(extra);
+				if (wasPlaying) {
+					paused = false;
+					framecount = 0;
+					startTime = glutGet(GLUT_ELAPSED_TIME);
+					nextFrame();
+				}
+				else {
+					renderNextFrame(0);
+				}
+				lockTimeKnob = false;
+				return;
+			}
+
+			if (mousePressBtn == mouseReleaseBtn) {
+				switch (mouseReleaseBtn) {
+					case PLAY_PAUSE:
+						paused = !paused;
+						renderer->setPaused(paused);
+						if (!paused) {
+							framecount = 0;
+							startTime = glutGet(GLUT_ELAPSED_TIME);
+							renderNextFrame(0);
+						}
+						break;
+					case TIME_KNOB:
+						break;
+					case REWIND:
+						renderer->rewind();
+						framecount = 0;
+						startTime = glutGet(GLUT_ELAPSED_TIME);
+						if (paused) {
+							renderNextFrame(0);
+						}
+						break;
+					case LOOP:
+						toggleLoop();
+						renderer->setLooped(loop);
+						break;
+					default:
+						break;
+				}
+			}
+		}
+	}
+
+	glutPostRedisplay();
+}
+
+void mousemove(int x, int y) {
+	renderer->setGuiOpacity(1.0);
+	resetGuiTimeout();
+	if (lockTimeKnob) {
+		double extra;
+		guiButton btn = findGuiButtonAtPoint(x, y, &extra);
+		renderer->setVideoTime(extra);
+	}
+
+	glutPostRedisplay();
 }
 
 void nextFrame() {
@@ -201,6 +359,8 @@ void nextFrame() {
 	unsigned int now;
 	now = glutGet(GLUT_ELAPSED_TIME);
 	unsigned int t = now - startTime;
+
+	advanceVideo = false;
 
 	if (t >= framerate * framecount) {
 		renderNextFrame(0);
@@ -226,174 +386,54 @@ void renderNextFrame(int param) {
 		}
 	}
 
+	advanceVideo = true;
 	glutPostRedisplay();
 }
 
-/*
-void idle() {
-	SDL_Event event;
-	SDL_UserEvent userevent;
-
-	userevent.type = SDL_USEREVENT;
-	userevent.code = 0;
-	userevent.data1 = &IDLE;
-	userevent.data2 = NULL;
-
-	event.type = SDL_USEREVENT;
-	event.user = userevent;
-
-	SDL_PushEvent(&event);
-}
-
-unsigned int hideGui(unsigned int interval, void *param) {
-	SDL_Event event;
-	SDL_UserEvent userevent;
-
-	userevent.type = SDL_USEREVENT;
-	userevent.code = 0;
-	userevent.data1 = &HIDEGUI;
-	userevent.data2 = NULL;
-
-	event.type = SDL_USEREVENT;
-	event.user = userevent;
-
-	SDL_PushEvent(&event);
-
-	return 0;
-}
-
-void onResize(unsigned int w, unsigned int h) {
-	winW = w;
-	winH = h;
-	renderer->resize();
-}
-
-
-void onKeyPress(SDL_KeyboardEvent &key) {
-	switch (key.keysym.scancode) {
-#ifdef __APPLE__
-		case SDL_SCANCODE_LGUI:
-		case SDL_SCANCODE_RGUI:
-#else
-		case SDL_SCANCODE_LCTRL:
-		case SDL_SCANCODE_RCTRL:
-#endif
-			ctrl = true;
-			break;
-		case SDL_SCANCODE_ESCAPE:
-			exitFullScreen();
-			break;
-		case SDL_SCANCODE_SPACE:
-			paused = !paused;
-			renderer->setPaused(paused);
-			if (!paused) {
-				framecount = 0;
-				glGetInteger64v(GL_TIMESTAMP, &startTime);
-				startTime /= 1000000;
-				renderNextFrame(0, NULL);
-			}
-			break;
-		case SDL_SCANCODE_LEFT:
-			renderer->rewind();
-			framecount = 0;
-			glGetInteger64v(GL_TIMESTAMP, &startTime);
-			startTime /= 1000000;
-			if (paused) {
-				renderNextFrame(0, NULL);
-			}
-			break;
-		case SDL_SCANCODE_F:
-			if (ctrl) toggleFullScreen();
-			break;
-		case SDL_SCANCODE_L:
-			toggleLoop();
-			renderer->setLooped(loop);
-			break;
-		default:
-			break;
+void toggleFullScreen() {
+	if (fullscreen) {
+		glutReshapeWindow(prevWinW, prevWinH);
+		glutPositionWindow(prevWinX, prevWinY);
 	}
-}
-
-void onKeyRelease(SDL_KeyboardEvent &key) {
-	switch (key.keysym.scancode) {
-#ifdef __APPLE__
-		case SDL_SCANCODE_LGUI:
-		case SDL_SCANCODE_RGUI:
-#else
-		case SDL_SCANCODE_LCTRL:
-		case SDL_SCANCODE_RCTRL:
-#endif
-			ctrl = false;
-			break;
-		default:
-			break;
+	else {
+		prevWinW = glutGet(GLUT_WINDOW_WIDTH);
+		prevWinH = glutGet(GLUT_WINDOW_HEIGHT);
+		prevWinX = glutGet(GLUT_WINDOW_X);
+		prevWinY = glutGet(GLUT_WINDOW_Y);
+		glutFullScreen();
 	}
+	fullscreen = !fullscreen;
 }
 
-void onMousePress(SDL_MouseButtonEvent &mouse) {
-	double extra;
-	mousePressBtn = findGuiButtonAtPoint(mouse.x, mouse.y, &extra);
-
-	if (mousePressBtn == TIME_KNOB) {
-		wasPlaying = !paused;
-		if (!paused) {
-			paused = true;
-		}
-		lockTimeKnob = true;
+void exitFullScreen() {
+	if (fullscreen) {
+		glutReshapeWindow(prevWinW, prevWinH);
+		glutPositionWindow(prevWinX, prevWinY);
 	}
+	fullscreen = false;
 }
 
-void onMouseRelease(SDL_MouseButtonEvent &mouse) {
-	double extra;
-	guiButton mouseReleaseBtn = findGuiButtonAtPoint(mouse.x, mouse.y, &extra);
+void toggleLoop() {
+	loop = !loop;
+}
 
-	if (lockTimeKnob) {
-		renderer->setVideoTime(extra);
-		if (wasPlaying) {
-			paused = false;
-			framecount = 0;
-			glGetInteger64v(GL_TIMESTAMP, &startTime);
-			startTime /= 1000000;
-			nextFrame();
-		}
-		else {
-			renderNextFrame(0, NULL);
-		}
-		lockTimeKnob = false;
+void resetGuiTimeout() {
+	if (!showGui) return;
+
+	fadeGui = false;
+	guiTimer = glutGet(GLUT_ELAPSED_TIME);
+	glutTimerFunc(2500, hideGui, guiTimer);
+	guiT = 0;
+}
+
+void hideGui(int param) {
+	if (param != guiTimer)
 		return;
-	}
 
-	if (mousePressBtn == mouseReleaseBtn) {
-		switch (mouseReleaseBtn) {
-			case PLAY_PAUSE:
-				paused = !paused;
-				renderer->setPaused(paused);
-				if (!paused) {
-					framecount = 0;
-					glGetInteger64v(GL_TIMESTAMP, &startTime);
-					startTime /= 1000000;
-					renderNextFrame(0, NULL);
-				}
-				break;
-			case TIME_KNOB:
-				break;
-			case REWIND:
-				renderer->rewind();
-				framecount = 0;
-				glGetInteger64v(GL_TIMESTAMP, &startTime);
-				startTime /= 1000000;
-				if (paused) {
-					renderNextFrame(0, NULL);
-				}
-				break;
-			case LOOP:
-				toggleLoop();
-				renderer->setLooped(loop);
-				break;
-			default:
-				break;
-		}
-	}
+	guiT = glutGet(GLUT_ELAPSED_TIME) + 501;
+	fadeGui = true;
+
+	glutPostRedisplay();
 }
 
 guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data) {
@@ -427,152 +467,3 @@ guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data) {
 
 	return NONE;
 }
-
-void toggleFullScreen() {
-    bool IsFullscreen = SDL_GetWindowFlags(mainwindow) & SDL_WINDOW_FULLSCREEN;
-    SDL_SetWindowFullscreen(mainwindow, IsFullscreen ? 0 : SDL_WINDOW_FULLSCREEN);
-    SDL_ShowCursor(IsFullscreen);
-}
-
-void exitFullScreen() {
-	bool IsFullscreen = SDL_GetWindowFlags(mainwindow) & SDL_WINDOW_FULLSCREEN;
-	if (IsFullscreen) {
-    	SDL_SetWindowFullscreen(mainwindow, 0);
-    	SDL_ShowCursor(true);
-	}
-}
-
-void toggleLoop() {
-	loop = !loop;
-}
-
-void resetGuiTimeout() {
-	if (!showGui) return;
-	if (guiTimer != 0) SDL_RemoveTimer(guiTimer);
-	guiTimer = SDL_AddTimer(2500, hideGui, NULL);
-	guiT = 0;
-}
-
-void finishAndQuit() {
-	SDL_Quit();
-	exit(0);
-}
-
-void SDL_Die(const char *msg) {
-	printf("%s: %s\n", msg, SDL_GetError());
-	SDL_Quit();
-	exit(1);
-}
-
-void SDL_MainLoop() {
-    SDL_Event event;
-    bool draw;
-	while (true) {
-		draw = false;
-		SDL_WaitEvent(&event);
-		do {
-			switch (event.type) {
-				case SDL_KEYDOWN:
-					renderer->setGuiOpacity(1.0);
-					resetGuiTimeout();
-					onKeyPress(event.key);
-					draw = true;
-					break;
-				case SDL_KEYUP:
-					renderer->setGuiOpacity(1.0);
-					resetGuiTimeout();
-					onKeyRelease(event.key);
-					draw = true;
-					break;
-				case SDL_MOUSEMOTION:
-					renderer->setGuiOpacity(1.0);
-					resetGuiTimeout();
-					if (lockTimeKnob) {
-						double extra;
-						guiButton btn = findGuiButtonAtPoint(event.motion.x, event.motion.y, &extra);
-						renderer->setVideoTime(extra);
-					}
-					draw = true;
-					break;
-				case SDL_MOUSEBUTTONDOWN:
-					onMousePress(event.button);
-					draw = true;
-					break;
-				case SDL_MOUSEBUTTONUP:
-					onMouseRelease(event.button);
-					draw = true;
-					break;
-				case SDL_WINDOWEVENT:
-					switch (event.window.event) {
-						case SDL_WINDOWEVENT_RESIZED:
-						case SDL_WINDOWEVENT_SIZE_CHANGED:
-							onResize(event.window.data1, event.window.data2);
-							draw = true;
-							break;
-						default:
-							break;
-					}
-					break;
-				case SDL_USEREVENT:
-					if (*(unsigned int*)event.user.data1 == NEXTFRAME) {
-						if (renderer->hasMoreFrames()) {
-							renderer->updateTextures();
-							nextFrame();
-						}
-						else {
-							if (loop) {
-								renderer->rewind();
-								framecount = 0;
-								glGetInteger64v(GL_TIMESTAMP, &startTime);
-								startTime /= 1000000;
-								nextFrame();
-							}
-							else {
-								paused = true;
-								renderer->setPaused(paused);
-							}
-						}
-						draw = true;
-					}
-					else if (*(unsigned int*)event.user.data1 == HIDEGUI) {
-						glGetInteger64v(GL_TIMESTAMP, &guiT);
-						guiT /= 1000000;
-						guiT += 501;
-						fadeGui = true;
-						draw = true;
-					}
-					else if (*(unsigned int*)event.user.data1 == IDLE) {
-						if (fadeGui) {
-							long long int t;
-							glGetInteger64v(GL_TIMESTAMP, &t);
-							t /= 1000000;
-							t += (501 - guiT);
-							if (t < 500) {
-								renderer->setGuiOpacity(1.0 - ((float)t/500.0));
-							}
-							else {
-								renderer->setGuiOpacity(0.0);
-								fadeGui = false;
-							}
-
-							draw = true;
-						}
-					}
-					break;
-				case SDL_QUIT:
-					renderer->close();
-					SDL_Quit();
-					exit(0);
-					break;
-				default:
-					break;
-			}
-		} while (SDL_PollEvent(&event));
-
-		if (draw) {
-			renderer->render();
-			if (fadeGui) idle();
-		}
-    }
-}
-*/

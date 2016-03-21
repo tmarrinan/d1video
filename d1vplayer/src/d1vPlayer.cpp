@@ -139,6 +139,9 @@ void d1vPlayer::render() {
 void d1vPlayer::resize() {
 	winW = glutGet(GLUT_WINDOW_WIDTH);
 	winH = glutGet(GLUT_WINDOW_HEIGHT);
+
+	unsigned int size = (unsigned int)(winH * 0.052);
+	textRenderer->setFontSize(font, size);
 }
 
 bool d1vPlayer::hasMoreFrames() {
@@ -656,7 +659,8 @@ void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragm
 }
 
 void d1vPlayer::loadFonts() {
-	textRenderer->openFont(exePath + "../d1vplayer/fonts/Arial.ttf", 72, &font);
+	unsigned int size = (unsigned int)(winH * 0.052);
+	textRenderer->openFont(exePath + "../d1vplayer/fonts/Arial.ttf", size, &font);
 	
 	glGenTextures(1, &fontTexture);
 	glBindTexture(GL_TEXTURE_2D, fontTexture);
@@ -675,7 +679,6 @@ void d1vPlayer::updateFontTexture(string text) {
 	unsigned int height;
 	unsigned char *pixels;
 	textRenderer->renderText(font, text, color, &width, &height, &pixels);
-
 
 	glBindTexture(GL_TEXTURE_2D, fontTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);

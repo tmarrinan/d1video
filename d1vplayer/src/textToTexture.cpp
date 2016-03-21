@@ -17,6 +17,10 @@ void textToTexture::openFont(string fontname, unsigned int size, FT_Face *face) 
 	FT_Set_Pixel_Sizes(*face, 0, size);
 }
 
+void textToTexture::setFontSize(FT_Face face, unsigned int size) {
+	FT_Set_Pixel_Sizes(face, 0, size);
+}
+
 void textToTexture::renderText(FT_Face face, std::string text, unsigned char color[3], unsigned int *width, unsigned int *height, unsigned char **pixels) {
 	int i, j, k;
 	vector<charGlyph> glyphs;
