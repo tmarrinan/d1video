@@ -52,6 +52,5 @@ DXT1-based Converter and Player for Ultra High Resolution Videos (4K - 16K)
     * `space`: play/pause
     * `left-arrow`: rewind to beginning
     * `l`: toggle loop
-    * `ctrl + f`: full screen (Windows / Linux)
-    * `cmd + f`: full screen (Max OS X)
+    * `shift + f`: full screen
     * `esc`: exit full screen
