@@ -38,8 +38,6 @@ unsigned int framerate;         // Playback framerate (milliseconds per frame)
 bool paused;                    // Whether or not video is paused
 unsigned int startTime;         // Time used for proper animation
 unsigned int guiTimer;          // GUI timer
-//SDL_TimerID animationTimer;     // Animation timer
-//SDL_TimerID guiTimer;           // GUI timer
 unsigned int guiT;              // GUI time counter
 bool fullscreen;                // Whether or not application is fullscreen
 bool fadeGui;                   // Whether or not the gui is currently fading out
@@ -67,21 +65,6 @@ void resetGuiTimeout();
 void hideGui(int param);
 guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data);
 
-
-/*void idle();
-void onResize(unsigned int w, unsigned int h);
-void onKeyPress(SDL_KeyboardEvent &key);
-void onKeyRelease(SDL_KeyboardEvent &key);
-void onMousePress(SDL_MouseButtonEvent &mouse);
-void onMouseRelease(SDL_MouseButtonEvent &mouse);
-guiButton findGuiButtonAtPoint(unsigned int x, unsigned int y, double *data);
-void toggleFullScreen();
-void exitFullScreen();
-void toggleLoop();
-void resetGuiTimeout();
-void finishAndQuit();
-void SDL_Die(const char *msg);
-void SDL_MainLoop();*/
 
 int main(int argc, char **argv) {
 	// Initialize main program
