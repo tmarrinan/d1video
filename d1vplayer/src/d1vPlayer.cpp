@@ -12,7 +12,7 @@ d1vPlayer::d1vPlayer(string exe) {
 }
 
 void d1vPlayer::initGL(string inFile, bool gui) {
-	//TTF_Init();
+	textRenderer = new textToTexture();
 
 	winW = glutGet(GLUT_WINDOW_WIDTH);
 	winH = glutGet(GLUT_WINDOW_HEIGHT);
@@ -502,14 +502,14 @@ void d1vPlayer::initBuffers() {
 	glGenVertexArrays(1, &textVertexArrayObject);
 	glBindVertexArray(textVertexArrayObject);
 
-	// vertices
+	// vertices 7.9245 (0.207)
 	glGenBuffers(1, &textVertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, textVertexPositionBuffer);
 	GLfloat textVertices[] = {
-		0.10, -0.72,  // left,  bottom
-		0.10, -0.68,  // left,  top
-		0.307, -0.72,  // right, bottom
-		0.307, -0.68   // right, top
+		0.10, -0.713,  // left,  bottom
+		0.10, -0.687,  // left,  top
+		0.307, -0.713,  // right, bottom
+		0.307, -0.687   // right, top
 	};
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), textVertices, GL_STATIC_DRAW);
 	glEnableVertexAttribArray(vertexPositionAttribute);
@@ -656,7 +656,7 @@ void d1vPlayer::createShaderProgram(string name, GLint vertexShader, GLint fragm
 }
 
 void d1vPlayer::loadFonts() {
-	//font = TTF_OpenFont((exePath + "../d1vplayer/fonts/Arial.ttf").c_str(), 72);
+	textRenderer->openFont(exePath + "../d1vplayer/fonts/Arial.ttf", 72, &font);
 	
 	glGenTextures(1, &fontTexture);
 	glBindTexture(GL_TEXTURE_2D, fontTexture);
@@ -670,17 +670,18 @@ void d1vPlayer::loadFonts() {
 }
 
 void d1vPlayer::updateFontTexture(string text) {
-	/*
+	unsigned char color[] = {196, 245, 255};
+	unsigned int width;
+	unsigned int height;
+	unsigned char *pixels;
+	textRenderer->renderText(font, text, color, &width, &height, &pixels);
+
+
 	glBindTexture(GL_TEXTURE_2D, fontTexture);
-
-	SDL_Color color = {196, 245, 255};
-	SDL_Surface *sFont = TTF_RenderText_Blended(font, text.c_str(), color);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, sFont->w, sFont->h, 0, GL_BGRA, GL_UNSIGNED_BYTE, sFont->pixels);
-
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 	glBindTexture(GL_TEXTURE_2D, 0);
-	SDL_FreeSurface(sFont);
-	*/
+
+	delete[] pixels;
 }
 
 string d1vPlayer::readFile(string filename) {

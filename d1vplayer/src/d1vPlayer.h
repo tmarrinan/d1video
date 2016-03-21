@@ -12,6 +12,8 @@
 	#include <GL/freeglut.h>
 #endif
 
+#include "textToTexture.h"
+
 
 class d1vPlayer {
 private:
@@ -75,7 +77,9 @@ private:
 	GLint guiVertexPositionAttribute;
 	GLint guiVertexColorAttribute;
 
-	//TTF_Font *font;
+	textToTexture *textRenderer;
+	FT_Face font;
+
 	GLuint fontTexture;
 
 	int duration;

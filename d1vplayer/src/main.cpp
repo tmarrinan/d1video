@@ -203,11 +203,9 @@ void nextFrame() {
 	unsigned int t = now - startTime;
 
 	if (t >= framerate * framecount) {
-		printf("render next frame now\n");
 		renderNextFrame(0);
 	}
 	else {
-		printf("render next frame in %d ms, t: %d\n", (framerate * framecount) - t, t);
 		glutTimerFunc((framerate * framecount) - t, renderNextFrame, 0);
 	}
 }
