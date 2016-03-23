@@ -7,8 +7,8 @@ ifeq ($(MACHINE),Darwin)
 	IMG_INC= -I/usr/local/include
 	IMG_LIB= -L/usr/local/lib -lpng -ljpeg
 else
-	OPENGL_INC= -I/usr/X11R6/include
-	OPENGL_LIB= -L/usr/lib64 -lGL -lGLU -lglut -lfreetype
+	OPENGL_INC= -I/usr/include -I/usr/include/freetype2
+	OPENGL_LIB= -L/usr/lib64 -lGL -lGLU -lGLEW -lglut -lfreetype
 	IMG_INC= -I/usr/include
 	IMG_LIB= -L/usr/lib64 -lpng -ljpeg
 endif
