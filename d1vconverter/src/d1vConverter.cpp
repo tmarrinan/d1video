@@ -94,7 +94,7 @@ void getJPEGResolution(string filename, unsigned int *width, unsigned int *heigh
 	*height = cinfo.output_height;
 
 	fclose(f);
-	jpeg_finish_decompress(&cinfo);
+	//jpeg_finish_decompress(&cinfo);
 	jpeg_destroy_decompress(&cinfo);
 }
 
