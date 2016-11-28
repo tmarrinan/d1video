@@ -3,15 +3,20 @@
 using namespace std;
 
 
-void getImageResolution(std::string directory, std::string ext, unsigned int *width, unsigned int *height) {
+void getImageResolution(std::string filename, unsigned int *width, unsigned int *height) {
+	size_t pos = filename.rfind('.');
+	if (pos == string::npos) return;
+
+	string ext = filename.substr(pos+1, string::npos);
+
 	unsigned int origW;
 	unsigned int origH;
 
 	if (ext == "jpeg" || ext == "jpg") {
-		getJPEGResolution(directory + "frame_000000." + ext, &origW, &origH);
+		getJPEGResolution(filename, &origW, &origH);
 	}
 	else if (ext == "png") {
-		getPNGResolution(directory + "frame_000000." + ext, &origW, &origH);
+		getPNGResolution(filename, &origW, &origH);
 	}
 
 	*width  = origW - (origW%4);

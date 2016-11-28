@@ -5,7 +5,7 @@
 
 enum rawFormat { RGB, RGBA };
 
-void getImageResolution(std::string directory, std::string ext, unsigned int *width, unsigned int *height);
+void getImageResolution(std::string filename, unsigned int *width, unsigned int *height);
 void convertImageToDXT1(std::string filename, unsigned int width, unsigned int height, unsigned char **data);
 void getJPEGResolution(std::string filename, unsigned int *width, unsigned int *height);
 void loadFromJPEG(std::string filename, unsigned int *width, unsigned int *height, rawFormat *format, unsigned char **data);
