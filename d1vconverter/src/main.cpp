@@ -52,6 +52,9 @@ int main(int argc, char **argv) {
 	unsigned int width;
 	unsigned int height;
 	getImageResolution(frameList[0], &width, &height);
+
+	printf("Total Resolution: %dx%d\n", width, height);
+
 	unsigned char *dxt1Buf = (unsigned char*) malloc((width*height) / 2);
 	unsigned char *headerBuf = (unsigned char*) malloc(18);
 	headerBuf[0] = 0x2E; // .
@@ -68,9 +71,12 @@ int main(int argc, char **argv) {
 	FILE *wf = fopen(outVid.c_str(), "wb");
 	fwrite(headerBuf, 1, 18, wf);
 	for (i=0; i<frameList.size(); i++) {
+		printf("\rEncoding: [%*d%%]", 3, (int)(100 * ((float)i / (float)frameList.size())));
+		fflush(stdout);
 		convertImageToDXT1(frameList[i], width, height, &dxt1Buf);
 		fwrite(dxt1Buf, 1, (width*height) / 2, wf);
 	}
+	printf("\rEncoding: [%*d%%]\n", 3, 100);
 	fclose(wf);
 	
 	return 0;
@@ -190,10 +196,6 @@ bool parseArguments(int argc, char **argv, string *exe, string *inputDir, string
 	*seqTemp = (*inputDir).substr(sep+1);
 	*inputDir = (*inputDir).substr(0, sep+1);
 
-	/*
-	if ((*inputDir)[(*inputDir).length()-1] != '/')
-		*inputDir += "/";
-	*/
 	return true;
 }
 
@@ -240,7 +242,6 @@ void getFrameList(string inputDir, string seqTemp, int start, int increment, vec
 		}
 		nextImage = inputDir + imgBase + frameStr + imgEnd;
 		frameList->push_back(nextImage);
-		printf("img: %s\n", nextImage.c_str());
 		i++;
 	} while (stat(nextImage.c_str(), &info) == 0 && !(info.st_mode & S_IFDIR));
 
